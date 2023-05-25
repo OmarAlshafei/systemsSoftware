@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     printf("                   PC   BP   SP   stack\n");
     printf("Initial values:    %d    %d   %d\n\n", PC, BP, SP);
     
-    int op;
+    int OP;
     int L;
     int M;
     char opName[4];
@@ -45,12 +45,12 @@ int main(int argc, char *argv[]) {
     
     while (halt != 0){
     
-    op = pas[PC];
+    OP = pas[PC];
     L = pas[PC + 1];
     M = pas[PC + 2];
     PC += 3;
     
-    switch(op) {
+    switch(OP) {
 
     case 1:
         SP += 1;
