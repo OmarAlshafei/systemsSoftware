@@ -9,11 +9,11 @@
 int pas[ARRAY_SIZE];
 
 int base(int BP, int L) {
-int arb = BP; // arb = activation record base
-while ( L > 0) { //find base L levels down
-arb = pas[arb];
-L--;
-}
+    int arb = BP; // arb = activation record base
+    while ( L > 0) { //find base L levels down
+        arb = pas[arb];
+        L--;
+    }
 return arb;
 }
 
