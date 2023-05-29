@@ -216,7 +216,6 @@ int main(int argc, char *argv[]) {
         // print array value at position i
         printf("%d ", pas[i]);
     }
-    fclose(fp);
     printf("\n");
     }    
     return 0;

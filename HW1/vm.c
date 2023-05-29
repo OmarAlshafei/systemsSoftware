@@ -23,7 +23,7 @@ return arb;
 int main(int argc, char *argv[]) {
     // open input file
     FILE *fp = fopen(argv[1], "r");
-    // initalize array    
+    // initalize array
     for (int i = 0; i < ARRAY_SIZE; i++)
         pas[i] = 0;
     // scan input into array and calculate BP
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     // define base pointer, stack pointer, and program counter
     int BP = x;
     int SP = x - 1;
-    int PC = 0;  
+    int PC = 0;
     // print initial values
     printf("\t\t\tPC\tBP\tSP\tstack\n");
     printf("Initial values:\t\t%d\t%d\t%d\n\n", PC, BP, SP);
@@ -198,16 +198,17 @@ int main(int argc, char *argv[]) {
         }
         // print operation name, L, M, program counter, base pointer, and stack pointer
         printf("\t%s  %d\t%d\t%d\t%d\t%d\t", opName, L, M, PC, BP, SP);
-        // for loop used for traverse through activation record
+        // for loop used to traverse through activation record
         for (int i = x; i <= SP; i++){
-            // prints bar if bp is equal to counter and has increased from its original value
+            // print bar if bp is equal to the counter and has increased from its original value
             if (i == BP && BP > x)
                 printf("| ");
-            // prints array value at index i
+            // print array value at index i
             printf("%d ", pas[i]);
         }
         printf("\n");
     }
+    // close file pointer
     fclose(fp);
     return 0;
 }
