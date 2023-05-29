@@ -1,6 +1,6 @@
 // Omar Alshafei
 // 5/24/2023
-//HW1
+// HW1
 
 #include <stdio.h>
 #include <stdlib.h>
