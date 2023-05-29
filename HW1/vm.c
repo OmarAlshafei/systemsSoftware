@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
                         SP = BP - 1;
                         BP = pas[SP + 2];
                         PC = pas[SP + 3];
-                        strcpy(opName, "LIT");
+                        strcpy(opName, "RTN");
                         break;
                     // add
                     case 1:
