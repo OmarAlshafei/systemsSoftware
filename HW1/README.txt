@@ -1,3 +1,4 @@
 Author: Omar Alshafei
 
- ./a.out input.txt
+gcc vm.c
+./a.out input.txt
