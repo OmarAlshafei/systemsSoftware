@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     int SP = x - 1;
     int PC = 0;  
     // print initial values
-    printf("                   PC   BP   SP   stack\n");
-    printf("Initial values:    %d    %d   %d\n\n", PC, BP, SP);
+    printf("\t\t\tPC\tBP\tSP\tstack\n");
+    printf("Initial values:\t\t%d\t%d\t%d\n\n", PC, BP, SP);
     
     int OP;
     int L;
@@ -204,17 +204,17 @@ int main(int argc, char *argv[]) {
        printf("ERROR");
     }
     // print operation name, L, M, program counter, base pointer, and stack pointer
-    printf("          %s  %d  %2d  %2d  %d  %d  ", opName, L, M, PC, BP, SP);
+    printf("\t%s  %d\t%d\t%d\t%d\t%d\t", opName, L, M, PC, BP, SP);
     // outer loop to traverse array
     for (int i = x; i <= SP; i++){
         // inner loop to locate bar
         for (int j = 0; j <= barCount; j++){
             // print bar if it is found
             if (bar[j] == i)
-                printf("|  ");
+                printf("| ");
         }
         // print array value at position i
-        printf("%d  ", pas[i]);
+        printf("%d ", pas[i]);
     }
     printf("\n");
     }    
