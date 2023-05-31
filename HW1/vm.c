@@ -23,25 +23,27 @@ return arb;
 int main(int argc, char *argv[]) {
     // open input file
     FILE *fp = fopen(argv[1], "r");
-    // initalize array
+    // initalize array    
     for (int i = 0; i < ARRAY_SIZE; i++)
         pas[i] = 0;
     // scan input into array and calculate BP
-    int x = 0;
-    while (fscanf(fp,"%d", &(pas[x])) != EOF)
-        x += 1;
+    int ogBP = 0;
+    while (fscanf(fp,"%d", &(pas[ogBP])) != EOF)
+        ogBP += 1;
     // define base pointer, stack pointer, and program counter
-    int BP = x;
-    int SP = x - 1;
-    int PC = 0;
+    int BP = ogBP;
+    int SP = ogBP - 1;
+    int PC = 0;  
     // print initial values
     printf("\t\t\tPC\tBP\tSP\tstack\n");
     printf("Initial values:\t\t%d\t%d\t%d\n\n", PC, BP, SP);
-
+    
     // define char array to store OP name
     char opName[4];
-    
-    // loop until program is halted
+    // define bar array and bar count variable to track bar location and quantity
+    int barCount = 0;
+    int bar[ogBP/3];
+    // loop to determine when program is halted
     int halt = 1;
     while (halt != 0){
         // define OP, L, and M values
@@ -153,6 +155,8 @@ int main(int argc, char *argv[]) {
                 pas[SP + 3] = PC;
                 BP = SP + 1;
                 PC = M;
+                bar[barCount] = BP;
+                barCount++;
                 strcpy(opName, "CAL");
                 break;
             // increment intructrion
@@ -193,21 +197,24 @@ int main(int argc, char *argv[]) {
                 strcpy(opName, "SYS");
                 break;
             // default case
-            default :
+            default:
                 printf("ERROR");
         }
         // print operation name, L, M, program counter, base pointer, and stack pointer
         printf("\t%s  %d\t%d\t%d\t%d\t%d\t", opName, L, M, PC, BP, SP);
-        // for loop used to traverse through activation record
-        for (int i = x; i <= SP; i++){
-            // print bar if bp is equal to the counter and has increased from its original value
-            if (i == BP && BP > x)
-                printf("| ");
-            // print array value at index i
+            // for loop used to traverse through activation record
+        for (int i = ogBP; i <= SP; i++){
+            // inner loop to locate bar
+            for (int j = 0; j <= barCount; j++){
+                // print bar if it is found
+                if (bar[j] == i)
+                    printf("| ");
+            }
+            // print array value at position i
             printf("%d ", pas[i]);
         }
         printf("\n");
-    }
+    }    
     // close file pointer
     fclose(fp);
     return 0;
