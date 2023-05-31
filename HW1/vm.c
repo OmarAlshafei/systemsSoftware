@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
                 printf("ERROR");
         }
         // print operation name, L, M, program counter, base pointer, and stack pointer
-        printf("\t%s  %d\t%d\t%d\t%d\t%d\t", opName, L, M, PC, BP, SP);
+        printf("    %s  %d\t%d\t%d\t%d\t%d\t", opName, L, M, PC, BP, SP);
             // for loop used to traverse through activation record
         for (int i = ogBP; i <= SP; i++){
             // inner loop to locate bar
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
                 if (bar[j] == i)
                     printf("| ");
             }
-            // print array value at position i
+            // print array value at index i
             printf("%d ", pas[i]);
         }
         printf("\n");
