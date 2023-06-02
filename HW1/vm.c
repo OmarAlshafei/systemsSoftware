@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
         for (int i = ogBP; i <= SP; i++){
             // inner loop to locate bar
             for (int j = 0; j <= barCount; j++){
-                // print bar if it is found
+                // print bar if it is required
                 if (bar[j] == i)
                     printf("| ");
             }
