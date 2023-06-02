@@ -17,7 +17,7 @@ int base(int BP, int L) {
         arb = pas[arb];
         L--;
     }
-return arb;
+    return arb;
 }
 
 int main(int argc, char *argv[]) {
@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
                         SP = BP - 1;
                         BP = pas[SP + 2];
                         PC = pas[SP + 3];
+                        bar[--barCount] = 0;
                         strcpy(opName, "RTN");
                         break;
                     // add
@@ -155,8 +156,7 @@ int main(int argc, char *argv[]) {
                 pas[SP + 3] = PC;
                 BP = SP + 1;
                 PC = M;
-                bar[barCount] = BP;
-                barCount++;
+                bar[barCount++] = BP;
                 strcpy(opName, "CAL");
                 break;
             // increment intructrion
