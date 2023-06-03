@@ -2,11 +2,12 @@
 // 5/24/2023
 // HW1
 
+// pre-processor directives
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// constant max array size
+// constant for the max array size
 #define ARRAY_SIZE 500
 // declare global array that stores the input
 int pas[ARRAY_SIZE];
@@ -43,21 +44,20 @@ int main(int argc, char *argv[]) {
     // define bar array and bar count variable to track bar location and quantity
     int barCount = 0;
     int bar[ogBP/3];
-    // loop to determine when program is halted
     int halt = 1;
+    // while loop used to carry out the PM/0 instruction cycle
     while (halt != 0){
-        // define OP, L, and M values
+        // fetch cycle:
         int OP = pas[PC];
         int L = pas[PC + 1];
         int M = pas[PC + 2];
-        // increment program counter by 3
         PC += 3;
         
-        // switch used for instuctions
+        // execute cycle:
         switch(OP) {
             // literal instruction
             case 1:
-                SP += 1;
+                SP++;
                 pas[SP] = M;
                 strcpy(opName, "LIT");
                 break;
@@ -72,64 +72,64 @@ int main(int argc, char *argv[]) {
                         bar[--barCount] = 0;
                         strcpy(opName, "RTN");
                         break;
-                    // add
+                    // add operation
                     case 1:
                         pas[SP-1] = pas[SP-1] + pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "ADD");
                         break;
-                    //subtract
+                    //subtract operation
                     case 2:
                         pas[SP-1] = pas[SP-1] - pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "SUB");
                         break;
-                    // multiply
+                    // multiply operation
                     case 3:
                         pas[SP-1] = pas[SP-1] * pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "MUL");
                         break;
-                    // divide
+                    // divide operation
                     case 4:
                         pas[SP-1] = pas[SP-1] / pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "DIV");
                         break;
-                    // equal
+                    // equal operation
                     case 5:
                         pas[SP-1] = pas[SP-1] == pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "EQL");
                         break;
-                    // not equal
+                    // not equal operation
                     case 6:
                         pas[SP-1] = pas[SP-1] != pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "NEQ");
                         break;
-                    // less than
+                    // less than operation
                     case 7:
                         pas[SP-1] = pas[SP-1] < pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "LSS");
                         break;
-                    // less than or equal to
+                    // less than or equal to operation
                     case 8:
                         pas[SP-1] = pas[SP-1] <= pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "LEQ");
                         break;
-                    // greater than
+                    // greater than operation
                     case 9:
                         pas[SP-1] = pas[SP-1] > pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "GTR");
                         break;
-                    // greater than or equal to
+                    // greater than or equal to operation
                     case 10:
                         pas[SP-1] = pas[SP-1] >= pas[SP];
-                        SP = SP - 1;
+                        SP--;
                         strcpy(opName, "GEQ");
                         break;
                     // default case
@@ -139,14 +139,14 @@ int main(int argc, char *argv[]) {
                 break;
             // load instruction
             case 3:
-                SP += 1;
+                SP++;
                 pas[SP] = pas[base(BP, L) + M];
                 strcpy(opName, "LOD");
                 break;
             // store instruction
             case 4:
                 pas[base(BP, L) + M] = pas[SP];
-                SP -= 1;
+                SP--;
                 strcpy(opName, "STO");
                 break;
             // call instruction
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
                 if (pas[SP] == 0){
                 PC = M;
                 }
-                SP -= 1;
+                SP--;
                 strcpy(opName, "JPC");
                 break;
             // SYS intructions
@@ -182,11 +182,11 @@ int main(int argc, char *argv[]) {
                 // write to the screen
                 if (M == 1){
                     printf("Output result is: %d\n", pas[SP]);
-                    SP -= 1;
+                    SP--;
                 }
                 // read in input
                 if (M == 2){
-                    SP += 1;
+                    SP++;
                     printf("Please Enter an Integer: ");
                     scanf("%d", &pas[SP]);
                 }
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
         for (int i = ogBP; i <= SP; i++){
             // inner loop to locate bar
             for (int j = 0; j <= barCount; j++){
-                // print bar if it is required
+                // print bar if array value matches index i
                 if (bar[j] == i)
                     printf("| ");
             }
