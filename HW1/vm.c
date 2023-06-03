@@ -2,7 +2,7 @@
 // 5/24/2023
 // HW1
 
-// pre-processor directives
+// preprocessor directives
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
