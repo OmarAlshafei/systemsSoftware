@@ -1,5 +1,6 @@
 var x, y;
-begin
+begin /* TEST COMMENT hfo0f5ho3fho3hewoghgeohg;othug
+whievohvowuDgtvo w;tuvjhwe*/
 	y := 3;
-	x := y + 56;
+	x := y + 56; //TEST COMMENT IWARGFIAWGFIAGBCVBE
 end.

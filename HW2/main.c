@@ -1,10 +1,11 @@
-// Hung Tran 
+// Hung Tran and Omar Alshafei
 // COP-3402 Summer 2023
 // HW2 Lexical Analyzer
 
-/* FIXME- check if code can handle identifier start with number 
-        - print Lexeme in list form
-        - add code to ignore comments
+/* FIXME
+        - check if code can handle identifier start with number 
+DONE    - print Lexeme in list form
+DONE    - add code to ignore comments
         - fprintf
         - test edge cases and error handling
 */
@@ -99,6 +100,18 @@ int main(int argc, char *argv[]) {
             cur++; 
             continue;
         }
+        
+        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '/' ){
+            while(inputStr[cur] != '\n')
+                cur++;
+            
+        }
+        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
+            cur += 2;
+            while(inputStr[cur] != '*' && inputStr[cur + 1] != '/'){
+                cur++;
+            }
+        }        
 
         // check if current char is a valid identifier or a reserved word
         else if(isalpha(inputStr[cur]) != 0 && isspace(inputStr[cur]) == 0){
@@ -337,6 +350,7 @@ int main(int argc, char *argv[]) {
             bufferIdx = 0;
 
         }
+        
 
         else{
             printf("Error: Invalid Symbol\n");
@@ -346,5 +360,21 @@ int main(int argc, char *argv[]) {
 
     cur++;
     }
+    
+    printf("Lexeme List:\n");
+    tokenIdx = 0;
+    cur = 0;
+    while(cur < len){
+        printf("%d ", tokenArr[tokenIdx].token);
+        if(tokenArr[tokenIdx].token == 2)
+            printf("%s ", tokenArr[tokenIdx].type);
+        else if(tokenArr[tokenIdx].token == 19){
+            printf("\n");
+            break;
+        }                
+        cur++;
+        tokenIdx++;
+    }
+    
 
 }
