@@ -62,7 +62,6 @@ int main(int argc, char *argv[]) {
 
     if (fp == NULL){
         printf("File CANNOT be open!");
-        fprintf(fp, "File CANNOT be open!");
         
         exit(0);
     }
@@ -92,10 +91,13 @@ int main(int argc, char *argv[]) {
     
 
     fp = fopen("output.txt", "w");
+    
     printf("Source Program:\n%s\n\n", inputStr);
     fprintf(fp, "Source Program:\n%s\n\n", inputStr);
+    
     printf("Lexeme Table:\n\n");
     fprintf(fp, "Lexeme Table:\n\n");
+    
     printf("lexeme\t\ttoken type\n");
     fprintf(fp, "lexeme\t\ttoken type\n");
 
@@ -109,12 +111,12 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        if (inputStr[cur] == '/' && inputStr[cur + 1] == '/' ){
+        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '/' ){
             while(inputStr[cur] != '\n')
                 cur++;
         }
         
-        if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
+        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
             cur += 2;
             while(inputStr[cur] != '*' && inputStr[cur + 1] != '/'){
                 cur++;
@@ -234,7 +236,12 @@ int main(int argc, char *argv[]) {
             }
 
             printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
-            fprintf(fp, "%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
+            if(strcmp(tokenArr[tokenIdx].type, "begin") == 0)
+                fprintf(fp, "%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);   
+            else
+                fprintf(fp, "%s\t\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
+            
+                     
             tokenIdx++;
             bufferIdx = 0;
             cur--;
@@ -267,7 +274,7 @@ int main(int argc, char *argv[]) {
             tokenArr[tokenIdx].token = numbersym;
 
             printf("%d\t\t%d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);
-            fprintf(fp, "%d\t\t%d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);            
+            fprintf(fp, "%d\t\t\t%d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);            
             tokenIdx++;
             bufferIdx = 0;
             cur--; 
@@ -359,7 +366,7 @@ int main(int argc, char *argv[]) {
             }
 
             printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
-            fprintf(fp, "%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
+            fprintf(fp, "%s\t\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
             tokenIdx++;
             bufferIdx = 0;
 
