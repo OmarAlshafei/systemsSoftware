@@ -59,8 +59,11 @@ int main(int argc, char *argv[]) {
     FILE *fp;
     fp = fopen(argv[1], "r"); 
 
+
     if (fp == NULL){
         printf("File CANNOT be open!");
+        fprintf(fp, "File CANNOT be open!");
+        
         exit(0);
     }
 
@@ -86,10 +89,15 @@ int main(int argc, char *argv[]) {
 
     token tokenArr[len];        // token array that will hold the info for each token 
     int tokenIdx = 0;           // current index of tokenArr
+    
 
+    fp = fopen("output.txt", "w");
     printf("Source Program:\n%s\n\n", inputStr);
+    fprintf(fp, "Source Program:\n%s\n\n", inputStr);
     printf("Lexeme Table:\n\n");
+    fprintf(fp, "Lexeme Table:\n\n");
     printf("lexeme\t\ttoken type\n");
+    fprintf(fp, "lexeme\t\ttoken type\n");
 
     // run through the input by char to determine the token 
     cur = 0; 
@@ -101,16 +109,17 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '/' ){
+        if (inputStr[cur] == '/' && inputStr[cur + 1] == '/' ){
             while(inputStr[cur] != '\n')
                 cur++;
-            
         }
-        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
+        
+        if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
             cur += 2;
             while(inputStr[cur] != '*' && inputStr[cur + 1] != '/'){
                 cur++;
             }
+            cur += 2;
         }        
 
         // check if current char is a valid identifier or a reserved word
@@ -121,6 +130,7 @@ int main(int argc, char *argv[]) {
                 // check if identifier is over 11 char, error handling
                 if(bufferIdx >= IDENT_MAX){
                     printf("Error: Identifier names cannot exceed 11 characters\n");
+                    fprintf(fp, "Error: Identifier names cannot exceed 11 characters\n");                    
                     cur++;
                     continue;
                 }
@@ -224,6 +234,7 @@ int main(int argc, char *argv[]) {
             }
 
             printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
+            fprintf(fp, "%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
             tokenIdx++;
             bufferIdx = 0;
             cur--;
@@ -237,6 +248,7 @@ int main(int argc, char *argv[]) {
                 // check if digit is over 5 char, error handling
                 if(bufferIdx >= NUM_MAX){
                     printf("Error: Numbers cannot exceed 5 characters\n");
+                    fprintf(fp, "Error: Numbers cannot exceed 5 characters\n");                    
                     cur++;
                     continue;
                 }
@@ -255,6 +267,7 @@ int main(int argc, char *argv[]) {
             tokenArr[tokenIdx].token = numbersym;
 
             printf("%d\t\t%d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);
+            fprintf(fp, "%d\t\t%d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);            
             tokenIdx++;
             bufferIdx = 0;
             cur--; 
@@ -346,6 +359,7 @@ int main(int argc, char *argv[]) {
             }
 
             printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
+            fprintf(fp, "%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
             tokenIdx++;
             bufferIdx = 0;
 
@@ -354,6 +368,7 @@ int main(int argc, char *argv[]) {
 
         else{
             printf("Error: Invalid Symbol\n");
+            fprintf(fp, "Error: Invalid Symbol\n");            
             cur++;
             continue;
         }
@@ -362,14 +377,20 @@ int main(int argc, char *argv[]) {
     }
     
     printf("\nLexeme List:\n");
+    fprintf(fp, "\nLexeme List:\n");
+    
     tokenIdx = 0;
     cur = 0;
     while(cur < len){
         printf("%d ", tokenArr[tokenIdx].token);
-        if(tokenArr[tokenIdx].token == 2)
+        fprintf(fp, "%d ", tokenArr[tokenIdx].token);        
+        if(tokenArr[tokenIdx].token == 2){
             printf("%s ", tokenArr[tokenIdx].type);
+            fprintf(fp, "%s ", tokenArr[tokenIdx].type);
+        }    
         else if(tokenArr[tokenIdx].token == 19){
             printf("\n");
+            fprintf(fp, "\n");
             break;
         }                
         cur++;
