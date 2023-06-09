@@ -361,7 +361,7 @@ int main(int argc, char *argv[]) {
     cur++;
     }
     
-    printf("Lexeme List:\n");
+    printf("\nLexeme List:\n");
     tokenIdx = 0;
     cur = 0;
     while(cur < len){
