@@ -236,10 +236,7 @@ int main(int argc, char *argv[]) {
             }
 
             printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
-            if(strcmp(tokenArr[tokenIdx].type, "begin") == 0)
-                fprintf(fp, "%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);   
-            else
-                fprintf(fp, "%s\t\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
+            fprintf(fp, "%s\t\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
             
                      
             tokenIdx++;
