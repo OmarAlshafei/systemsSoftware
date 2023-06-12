@@ -10,20 +10,22 @@ Lexeme Table:
 lexeme		token type
 var			29
 Error: Identifiers cannot begin with a digit
-0			3
+,			17
 Error: Identifiers cannot begin with a digit
-0			3
+;			18
 begin			21
 y			2
 :=			20
 3			3
+;			18
 x			2
 :=			20
 y			2
 +			4
 56			3
+;			18
 end			22
 .			19
 
 Lexeme List:
-29 3 3 21 2 y 20 3 2 x 20 2 y 4 3 22 19 
+29 17 18 21 2 y 20 3 18 2 x 20 2 y 4 3 18 22 19 
