@@ -4,10 +4,8 @@
 
 /* FIXME
         - check if code can handle identifier start with number 
-DONE    - print Lexeme in list form
-DONE    - add code to ignore comments
-        - fprintf
-        - test edge cases and error handling
+        - fprintf <--- should we keep this?
+        - test edge cases and error handling (digit with letter in it, long digit, long identifier)
 */
 
 
@@ -111,11 +109,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        else if (inputStr[cur] == '/' && inputStr[cur + 1] == '/' ){
-            while(inputStr[cur] != '\n')
-                cur++;
-        }
-        
+        // check for comment
         else if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
             cur += 2;
             while(inputStr[cur] != '*' && inputStr[cur + 1] != '/'){
@@ -126,15 +120,17 @@ int main(int argc, char *argv[]) {
 
         // check if current char is a valid identifier or a reserved word
         else if(isalpha(inputStr[cur]) != 0 && isspace(inputStr[cur]) == 0){
-
+            
             while((isalpha(inputStr[cur]) != 0 || isdigit(inputStr[cur]) != 0) && isspace(inputStr[cur]) == 0){
                 
                 // check if identifier is over 11 char, error handling
                 if(bufferIdx >= IDENT_MAX){
                     printf("Error: Identifier names cannot exceed 11 characters\n");
-                    fprintf(fp, "Error: Identifier names cannot exceed 11 characters\n");                    
-                    cur++;
-                    continue;
+                    fprintf(fp, "Error: Identifier names cannot exceed 11 characters\n"); 
+                    while((isalpha(inputStr[cur]) != 0 || isdigit(inputStr[cur]) != 0) && isspace(inputStr[cur]) == 0)                 
+                        cur++;
+
+                    strcpy(buffer, "NO GOOD");
                 }
 
                 else{
@@ -229,6 +225,12 @@ int main(int argc, char *argv[]) {
                 tokenArr[tokenIdx].token = writesym; 
             }
 
+            // Error handling
+            else if(strcmp(buffer, "NO GOOD") == 0){
+                bufferIdx = 0;
+                continue;
+            }
+
             // identifier 
             else{
                 strcpy(tokenArr[tokenIdx].type, buffer);
@@ -247,20 +249,39 @@ int main(int argc, char *argv[]) {
         // check if current char is a digit
         else if(isdigit(inputStr[cur]) != 0 && isspace(inputStr[cur]) == 0){
 
-            while(isdigit(inputStr[cur]) != 0 && isspace(inputStr[cur]) == 0){
+            while((isalpha(inputStr[cur]) != 0 || isdigit(inputStr[cur]) != 0) && isspace(inputStr[cur]) == 0){
+
+                // check if identifier contain digit, error handling
+                if(isalpha(inputStr[cur]) != 0){
+                    printf("Error: Identifiers cannot begin with a digit\n");
+                    fprintf(fp, "Error: Identifiers cannot begin with a digit\n");   
+
+                    while((isalpha(inputStr[cur]) != 0 || isdigit(inputStr[cur]) != 0) && isspace(inputStr[cur]) == 0)                 
+                        cur++;
+
+                    strcpy(buffer, "NO GOOD");  
+                }
 
                 // check if digit is over 5 char, error handling
-                if(bufferIdx >= NUM_MAX){
+                else if(bufferIdx >= NUM_MAX){
                     printf("Error: Numbers cannot exceed 5 characters\n");
-                    fprintf(fp, "Error: Numbers cannot exceed 5 characters\n");                    
-                    cur++;
-                    continue;
+                    fprintf(fp, "Error: Numbers cannot exceed 5 characters\n");   
+
+                    while((isalpha(inputStr[cur]) != 0 || isdigit(inputStr[cur]) != 0) && isspace(inputStr[cur]) == 0)                 
+                        cur++;
+
+                    strcpy(buffer, "NO GOOD");                 
                 }
 
                 else{
                     buffer[bufferIdx++] = inputStr[cur++];
                 }
 
+            }
+
+            if(strcmp(buffer, "NO GOOD") == 0){
+                bufferIdx = 0;
+                continue;
             }
 
             buffer[bufferIdx] = '\0';
@@ -401,5 +422,7 @@ int main(int argc, char *argv[]) {
         tokenIdx++;
     }
     
+    fclose(fp);
+    free(inputStr);
 
 }
