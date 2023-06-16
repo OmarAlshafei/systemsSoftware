@@ -1,6 +1,6 @@
 Name: Hung Tran and Omar Alshafei
 
-To compile & run this code, first download the vm.c file and any requisite
+To compile & run this code, first download the main.c file and any requisite
 input files to the same directory.
 Use "gcc -g main.c" to generate a program file from the .c file.
 
