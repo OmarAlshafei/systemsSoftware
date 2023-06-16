@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     }
 
     // local variables 
-    char reservedWords[14][20] = {"const", "var", "procedure", "call", "begin", "end", "if", "then"
+    char reservedWords[14][20] = {"const", "var", "procedure", "call", "begin", "end", "if", "then",
                                   "xor", "else", "while", "do", "read", "write"};
     char* inputStr;     // hold the input from file
     char buffer[25];    // temporary string 
@@ -84,9 +84,9 @@ int main(int argc, char *argv[]) {
     
     printf("Source Program:\n%s\n\n", inputStr);
     
-    printf("Lexeme Table:\n\n");
+    printf("Lexeme Table:\n");
     
-    printf("lexeme\t\ttoken type\n");
+    printf("lexeme          token type\n");
 
     // run through the input by char to determine the token 
     cur = 0; 
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
                 tokenArr[tokenIdx].token = identsym; 
             }
 
-            printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
+            printf("%11s     %d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
                      
             tokenIdx++;
             bufferIdx = 0;
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
 
                 // check if digit is over 5 char, error handling
                 else if(bufferIdx >= NUM_MAX){
-                    printf("Error: Numbers cannot exceed 5 characters\n");
+                    printf("Error: Numbers cannot exceed 5 digits\n");
 
                     while((isalpha(inputStr[cur]) != 0 || isdigit(inputStr[cur]) != 0) && isspace(inputStr[cur]) == 0)                 
                         cur++;
@@ -276,7 +276,7 @@ int main(int argc, char *argv[]) {
             tokenArr[tokenIdx].val = atoi(buffer);
             tokenArr[tokenIdx].token = numbersym;
 
-            printf("%d\t\t%d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);
+            printf("%11d     %d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);
             tokenIdx++;
             bufferIdx = 0;
             cur--; 
@@ -312,7 +312,7 @@ int main(int argc, char *argv[]) {
 
             // (
             else if(inputStr[cur] == '('){
-                strcpy(tokenArr[tokenIdx].type, "()");
+                strcpy(tokenArr[tokenIdx].type, "(");
                 tokenArr[tokenIdx].token = lparentsym; 
             }
 
@@ -342,14 +342,33 @@ int main(int argc, char *argv[]) {
 
             // <
             else if(inputStr[cur] == '<'){
+                if((cur + 1 < len) && inputStr[cur + 1] == '>'){
+                    strcpy(tokenArr[tokenIdx].type, "<>");
+                    tokenArr[tokenIdx].token = neqsym; 
+                    cur++;
+                }
+                else if((cur + 1 < len) && inputStr[cur + 1] == '='){
+                    strcpy(tokenArr[tokenIdx].type, "<=");
+                    tokenArr[tokenIdx].token = leqsym; 
+                    cur++;
+                }
+                else{
                 strcpy(tokenArr[tokenIdx].type, "<");
                 tokenArr[tokenIdx].token = lessym; 
+                }
             }
 
             // >
             else if(inputStr[cur] == '>'){
+                if((cur + 1 < len) && inputStr[cur + 1] == '='){
+                    strcpy(tokenArr[tokenIdx].type, ">=");
+                    tokenArr[tokenIdx].token = geqsym; 
+                    cur++;
+                }
+                else{
                 strcpy(tokenArr[tokenIdx].type, ">");
                 tokenArr[tokenIdx].token = gtrsym; 
+                }
             }
 
             // ;
@@ -367,7 +386,7 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            printf("%s\t\t%d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
+            printf("%11s     %d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
             tokenIdx++;
             bufferIdx = 0;
 
@@ -381,30 +400,24 @@ int main(int argc, char *argv[]) {
         }
 
     cur++;
-    }
-    
-    printf("\nLexeme List:\n");
-    
-    // printing Lexeme List
-    tokenIdx = 0;
-    cur = 0;
-    while(cur < len){
-        printf("%d ", tokenArr[tokenIdx].token);
 
-        if(tokenArr[tokenIdx].token == 3){
-            printf("%d ", tokenArr[tokenIdx].val);
-        }
-        if(tokenArr[tokenIdx].token == 2){
-            printf("%s ", tokenArr[tokenIdx].type);
-        }    
-        else if(tokenArr[tokenIdx].token == 19){
-            printf("\n");
-            break;
-        }                
-        cur++;
-        tokenIdx++;
     }
     
+    printf("\nToken List:\n");
+    
+    // printing Token List
+    for(int i = 0; i < tokenIdx; i++){
+        printf("%d ", tokenArr[i].token);
+
+        if(tokenArr[i].token == 3){
+            printf("%d ", tokenArr[i].val);
+        }
+        if(tokenArr[i].token == 2){
+            printf("%s ", tokenArr[i].type);
+        }          
+    }
+
+    printf("\n");
     fclose(fp);
     free(inputStr);
 
