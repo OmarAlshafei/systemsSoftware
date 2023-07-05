@@ -403,5 +403,4 @@ int main(int argc, char *argv[]) {
 
     fclose(fp);
     free(inputStr);
-
 }
