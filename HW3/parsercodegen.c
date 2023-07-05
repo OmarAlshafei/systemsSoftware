@@ -6,19 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_CODE_LENGTH 500
-
 // constants
 #define IDENT_MAX 11
 #define NUM_MAX 5
-
-typedef struct instruction {
-	int op;
-	int l;
-	int m;
-} instruction;
-
-instruction *tokenVar;
 
 // token values
 typedef enum {
@@ -393,43 +383,25 @@ int main(int argc, char *argv[]) {
             cur++;
             continue;
         }
-
     cur++;
-
     }
-	/*
-    // printing Token List
-    for(int i = 0; i < tokenIdx; i++){
+    char* tokenVar = malloc(sizeof(char) * (tokenIdx * 3 + 1));
 
-		strcat(, (char)tokenArr[i].token);
-
-        if(tokenArr[i].token == 3){
-			strcat(, (char)tokenArr[i].val);
+    int x = 0;
+    for (int i = 0; i < tokenIdx; i++) {
+        x += sprintf(tokenVar + x, "%d ", tokenArr[i].token);
+        
+        if (tokenArr[i].token == 3) {
+            x += sprintf(tokenVar + x, "%d ", tokenArr[i].val);
         }
-        if(tokenArr[i].token == 2){
-			strcat(, (char)tokenArr[i].type);
-        }          
+        if (tokenArr[i].token == 2) {
+            x += sprintf(tokenVar + x, "%s ", tokenArr[i].type);
+        }
     }
 
-	printf("%s", );
-
-	int lineNum = 0;
-	// char opCode =
-	// int lexLevel =
-	// int opNum = 
-
-	printf("Line\t\tOP\t\tL\t\tM");
-	
-	while ( != null){
-		printf("%d\t\t%s\t\t%d\t\t%d" lineNum);		
-		lineNum++;
-		
-	}
-
-
+    printf("\n%s\n", tokenVar);
 
     fclose(fp);
     free(inputStr);
-	free();
-	*/
+
 }
