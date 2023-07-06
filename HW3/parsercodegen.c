@@ -20,6 +20,11 @@ periodsym, becomessym, beginsym, endsym, ifsym, thensym,
 whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
 readsym , elsesym} token_type;
 
+typedef struct instructions{
+  char OP[4];
+  int L;
+  int M;
+} instructions;
 
 // token struct 
 typedef struct token {
@@ -40,12 +45,14 @@ typedef struct{
 
 
 // global variable
+instructions assembly[MAX_SYMBOL_TABLE_SIZE];
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 token* tokenArr; 
 int sbIndex = 0;       // index of the symbol table
 int curToken;          // stores the current token to analyze
 int maxToken;          // stores the max index of token array
 int curTokenIdx = 0;   // stores the current token to analyze
+int lineCount = 0;
 
 
 // return 1 if char is a special symbols, else return 0
@@ -64,8 +71,15 @@ int getToken(){
 }
 
 
-symbol* lexFile();
-
+int program(FILE*);
+int block(FILE*);
+int constDeclaration(FILE*);
+int varDeclaration(FILE*);
+int statement(FILE*);
+int condition(FILE*);
+int expression(FILE*);
+int term(FILE*);
+int factor(FILE*);
 /*
 // linear search through symbol table looking at name (str)
 // return index if found, -1 if not
@@ -453,14 +467,52 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    FILE *ifp = fopen("lexemelist.txt", "w");
+    FILE *ifp = fopen("lexemelist.txt", "w+");
     fputs(tokenVar, ifp);
+    if (program(ifp) == -1){
+        printf("Error");
+        fclose(ifp);
+        return -1;
+    }
     
+    fclose(ifp);
+    fclose(fp);
+    free(tokenVar);
+    free(inputStr);
+}
+
+int program(FILE *input){
+    
+    if (block(input) == -1){
+    return -1;
+    }
+    if (tokenArr->token != periodsym){
+        printf("Error : program must end with period %d %s\n", tokenArr->token, tokenArr->type);
+        return -1;
+    }
+    
+    //emit(9, "SYS", 0, 3); we need to make an emit func
     
     printf("Assembly Code:\n\n");
     printf("Line\tOP\tL\tM\n");
     printf("  0\tJMP\t0\t3\n");
 
-    fclose(fp);
-    free(inputStr);
+    for (int i = 0; i < lineCount; i++){
+        printf("%d\t%s\t%d\t%d\n", i, assembly[i].OP, assembly[i].L, assembly[i].M);
+    }
+
+    return 0;
 }
+
+int block (FILE *input){
+    
+  int contant = constDeclaration(input);
+  int var = varDeclaration(input);
+
+  //emit(6, "INC", 0, (4 + num)); we need to make an emit func
+  
+  int result = statement(input);
+
+  return result;
+}
+
