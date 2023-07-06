@@ -9,6 +9,7 @@
 // constants
 #define IDENT_MAX 11
 #define NUM_MAX 5
+#define MAX_SYMBOL_TABLE_SIZE 500
 
 // token values
 typedef enum {
@@ -27,6 +28,25 @@ typedef struct token {
     char type[15];  
 }token;
 
+// symbol struct
+typedef struct{
+    int kind;       // const = 1, var = 2, proc = 3
+    char name[10];  // name up to 11 chars
+    int val;        // number (ASCII value)
+    int level;      // L level
+    int addr;       // M address
+    int mark;       // to indicate unavailable or deleted
+}symbol;
+
+
+// global variable
+symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+token* tokenArr; 
+int sbIndex = 0;       // index of the symbol table
+int curToken;          // stores the current token to analyze
+int maxToken;          // stores the max index of token array
+int curTokenIdx = 0;   // stores the current token to analyze
+
 
 // return 1 if char is a special symbols, else return 0
 int isSpecialSymbol(char c){
@@ -38,6 +58,40 @@ int isSpecialSymbol(char c){
 
     return 0;
 }
+
+int getToken(){
+    return tokenArr[curTokenIdx].token;
+}
+
+
+symbol* lexFile();
+
+/*
+// linear search through symbol table looking at name (str)
+// return index if found, -1 if not
+int SYMBOLTABLECHECK(char str[51]){
+
+    for(int i = sbIndex; i >= 0; i--){
+
+        if(strcmp(symbol_table[i].name,str) == 0) return i; 
+
+    }
+
+    return -1;
+}
+
+
+int factor(int token){
+    if(token == identsym){
+        int symIdx = SYMBOLTABLECHECK(token);
+
+    }
+}
+
+*/
+
+
+
 
 
 // driver function 
@@ -73,7 +127,7 @@ int main(int argc, char *argv[]) {
     while(fscanf(fp, "%c", &inputStr[cur]) != EOF)
         cur++; 
 
-    token tokenArr[len];        // token array that will hold the info for each token 
+    tokenArr = malloc(sizeof(token) * len);        // token array that will hold the info for each token 
     int tokenIdx = 0;           // current index of tokenArr
 
 
@@ -398,8 +452,14 @@ int main(int argc, char *argv[]) {
             x += sprintf(tokenVar + x, "%s ", tokenArr[i].type);
         }
     }
-
-    printf("\n%s\n", tokenVar);
+    
+    FILE *ifp = fopen("lexemelist.txt", "w");
+    fputs(tokenVar, ifp);
+    
+    
+    printf("Assembly Code:\n\n");
+    printf("Line\tOP\tL\tM\n");
+    printf("  0\tJMP\t0\t3\n");
 
     fclose(fp);
     free(inputStr);
