@@ -64,9 +64,8 @@ typedef struct{
 #define IDENT_MAX 11
 #define NUM_MAX 5
 #define MAX_SYMBOL_TABLE_SIZE 500
-#define CODE_SIZE 1000               //NOT: NEED TO CHECK FOR CODE SIZE
-instruction codeStack[CODE_SIZE];
-symbol symbol_table[MAX_SYMBOL_TABLE_SIZE]; 
+instruction assembly[MAX_SYMBOL_TABLE_SIZE];
+symbol table[MAX_SYMBOL_TABLE_SIZE]; 
 int codeIndex = 0;                          //current index of code stack
 int idx = 0;                                //current index of token array
 int table_index = 1;                        //current index of symbol table
@@ -83,16 +82,13 @@ typedef enum {
 
 
 
-void printSource(char *source,int len);
-void removeComments(char *source, char *newSource, int length) ;
+void print(char *source,int len);
 int isSpecialSymbol(char ch);
-void tokeize(char newSource[], int sourceLength, token tokenArray[], int *size);
-void symbol_table_add(int kind_of_token ,char name_of_token[],int val_of_token, int level_of_token, int addr_of_token);
-int symbol_table_check(char string[], int string_kind);
-void symbol_table_print();
+void addTable(int, char*, int, int, int);
+int checkTable(char string[], int string_kind);
 void emit(int op,  int l, int m);
-void const_declaration(token tokenArray[]);
-int var_declaration(token tokenArray[]);
+void constDeclaration(token tokenArray[]);
+int varDeclaration(token tokenArray[]);
 void block(token tokenArray[], int size);
 void term(token tokenArray[]);
 void expression(token tokenArray[]);
@@ -100,8 +96,8 @@ void factor(token tokenArray[]);
 void program(token tokenArray[], int size);
 void condition(token tokenArray[]);
 void statement(token tokenArray[]);
-void print_assembly_code();
-void typeOpCode(char*, int);
+void printAssembly();
+void OpCode(char*, int);
 
 // return 1 if char is a special symbols, else return 0
 int isSpecialSymbol(char c){
@@ -150,12 +146,6 @@ int main(int argc, char *argv[]) {
     token tokenArr[len];        // token array that will hold the info for each token 
     int tokenIdx = 0;           // current index of tokenArr
     
-    
-    printf("Source Program:\n%s\n\n", inputStr);
-    
-    printf("Lexeme Table:\n");
-    
-    printf("lexeme          token type\n");
 
     // run through the input by char to determine the token 
     cur = 0; 
@@ -293,8 +283,6 @@ int main(int argc, char *argv[]) {
                 strcpy(tokenArr[tokenIdx].type, buffer);
                 tokenArr[tokenIdx].token = identsym; 
             }
-
-            printf("%11s     %d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);            
                      
             tokenIdx++;
             bufferIdx = 0;
@@ -345,7 +333,6 @@ int main(int argc, char *argv[]) {
             tokenArr[tokenIdx].val = atoi(buffer);
             tokenArr[tokenIdx].token = numbersym;
 
-            printf("%11d     %d\n", tokenArr[tokenIdx].val, tokenArr[tokenIdx].token);
             tokenIdx++;
             bufferIdx = 0;
             cur--; 
@@ -455,7 +442,6 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            printf("%11s     %d\n", tokenArr[tokenIdx].type, tokenArr[tokenIdx].token);
             tokenIdx++;
             bufferIdx = 0;
 
@@ -471,20 +457,7 @@ int main(int argc, char *argv[]) {
     cur++;
 
     }
-    
-    printf("\nToken List:\n");
-    
-    // printing Token List
-    for(int i = 0; i < tokenIdx; i++){
-        printf("%d ", tokenArr[i].token);
 
-        if(tokenArr[i].token == 3){
-            printf("%d ", tokenArr[i].val);
-        }
-        if(tokenArr[i].token == 2){
-            printf("%s ", tokenArr[i].type);
-        }          
-    }
     int size = 0;
     token tokenArray[len];
     while((size) < tokenIdx){
@@ -498,22 +471,21 @@ int main(int argc, char *argv[]) {
     //Initilze code stack 
     for(int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++){
         if(i == 0){
-            codeStack[i].op = 7;
-            codeStack[i].l = 0;
-            codeStack[i].m = 3;
+            assembly[i].op = 7;
+            assembly[i].l = 0;
+            assembly[i].m = 3;
             codeIndex++;
-        }else{
-            codeStack[i].op = 0;
-            codeStack[i].l = 0;
-            codeStack[i].m = 0;
+        }
+        else{
+            assembly[i].op = 0;
+            assembly[i].l = 0;
+            assembly[i].m = 0;
         }
     }
 
     program(tokenArray, size);
     
-    // symbol_table_print();
-
-    print_assembly_code();
+    printAssembly();
     
     printf("\n");
     fclose(fp);
@@ -526,9 +498,6 @@ void program(token tokenArray[], int size){
     
     block(tokenArray, size);
 
-
-    printf("\nNo errors, program is grammarly correct");
-
     //emit end of program: SYS 03
     emit(9,0,3);
 
@@ -538,10 +507,10 @@ void program(token tokenArray[], int size){
 void block(token tokenArray[], int size){
     while(idx < size){
         if(tokenArray[idx].token == constsym){
-            const_declaration(tokenArray);
+            constDeclaration(tokenArray);
         }
         else if(tokenArray[idx].token == varsym){
-            int numVars = var_declaration(tokenArray);
+            int numVars = varDeclaration(tokenArray);
             //emit INC(M = 3 + numVars), OPR = 6
             emit(6,0,numVars + 3);
 
@@ -554,7 +523,7 @@ void block(token tokenArray[], int size){
     
 }
 
-int var_declaration(token tokenArray[]){
+int varDeclaration(token tokenArray[]){
     int numVars = 0;
     if(tokenArray[idx].token == varsym){
         do{
@@ -567,14 +536,10 @@ int var_declaration(token tokenArray[]){
                 exit(1);
             }
 
-            //if (symbol_table_check(tokenArray[idx)) != -1)   //NOTE: ASK PROF HERE
-                //printf('Error: ');
-                //exit(0);
-
             //if table is empty or it is not in the list, add it
             //otherwise it is error
-            if(table_index == 0 || symbol_table_check(tokenArray[idx].type,2) == 0){ 
-                symbol_table_add(2, tokenArray[idx].type, 0,0,numVars + 2);  
+            if(table_index == 0 || checkTable(tokenArray[idx].type,2) == 0){ 
+                addTable(2, tokenArray[idx].type, 0,0,numVars + 2);  
             }else{
                 printf("Symbol name has already been declared");
                 exit(1);
@@ -599,15 +564,13 @@ int var_declaration(token tokenArray[]){
 
 void statement(token tokenArray[]){
     if(tokenArray[idx].token == identsym){
-        /*Debug*/
-        // printf("\nCurrent identsym token is %s\n", tokenArray[idx].type);
 
         int symIdx = 0;
         
         //check if identifier has been declared
         for(int i = table_index - 1; i > 0; i--){
-            if(strcmp(tokenArray[idx].type, symbol_table[i].name) == 0){  //found
-                if(symbol_table[i].kind == 1){ //constant
+            if(strcmp(tokenArray[idx].type, table[i].name) == 0){  //found
+                if(table[i].kind == 1){ //constant
                     
                     /*Debugging*/
                     printf("\nBug is at location :b");
@@ -616,28 +579,26 @@ void statement(token tokenArray[]){
                         printf("Current symbol is %s\n", tokenArray[j].type);
                     }
                     printf("\nCurrent index of token array is %d\n", idx);
-                    printf("Current symbol is %s\n", symbol_table[i].name);
+                    printf("Current symbol is %s\n", table[i].name);
 
 
                     printf("\nError: Symbol cannot be a constant in statment");
                     exit(1);
                 }
-                else if(symbol_table[i].kind == 2){ //var
+                else if(table[i].kind == 2){ //var
                     symIdx = i;
                 }
             }
         }
         
 
-        if(symbol_table[symIdx].kind != 2){
+        if(table[symIdx].kind != 2){
            printf("\nError: Only variable values may be altered");
            exit(1); 
         }
 
         //get the next token
         idx++;
-        /*Debug*/
-        // printf("\nCurrent identsym token is %s\n", tokenArray[idx].type);
 
         if(tokenArray[idx].token != becomessym){
             printf("\nError: Assignment statements must use :=");
@@ -645,38 +606,24 @@ void statement(token tokenArray[]){
         }
         //get the next token
         idx++;
-        /*Debug*/
-        // printf("\nCurrent identsym token is %s\n", tokenArray[idx].type);
+        
         expression(tokenArray);
 
         //emit STO(M = table[symIdx].addr)
-        emit(4,0,symbol_table[symIdx].addr);
+        emit(4,0,table[symIdx].addr);
 
         return;        
     }
     else if(tokenArray[idx].token == beginsym){
         do{
-            /*Debug*/
-            // printf("\nCurrent identsym token is %s\n", tokenArray[idx].type);
-
+            
             //get next token
             idx++;
 
-            /*Debug*/
-            // printf("\nCurrent character is %s", tokenArray[idx].type);
-
             statement(tokenArray);
-
             
-
-            /*Debug*/
-            // printf("\nit will come here after token at the end of factor\n");
         }while (tokenArray[idx].token == semicolonsym);
         
-        /*Debug*/
-        // printf("\nCharacter after while loop is %s", tokenArray[idx].type);
-        // printf("\nSecond Character after while loop is %s", tokenArray[idx+4].type);
-
         if(tokenArray[idx].token != endsym){
             printf("\nError: Begin must be followed by end");
             exit(1);
@@ -708,13 +655,11 @@ void statement(token tokenArray[]){
         statement(tokenArray);
         
         //update m
-        codeStack[jpc_idx].m = codeIndex;
+        assembly[jpc_idx].m = codeIndex;
         return; 
     }
     else if(tokenArray[idx].token == whilesym){
-        /*Debug*/
-        // printf("\nIt is at while");
-
+        
         //get next token
         idx++;
         
@@ -740,7 +685,7 @@ void statement(token tokenArray[]){
         emit(7,0,loop_idx);
 
         //update m for JPC
-        codeStack[jpc_idx].m = codeIndex;
+        assembly[jpc_idx].m = codeIndex;
         return;
     }
     else if(tokenArray[idx].token == readsym){
@@ -757,7 +702,7 @@ void statement(token tokenArray[]){
 
         //Check if identifier is has been declared
         for(int i = table_index - 1; i > 0; i--){
-            if(strcmp(tokenArray[idx].type, symbol_table[i].name) == 0){ //found
+            if(strcmp(tokenArray[idx].type, table[i].name) == 0){ //found
                 symIdx = i;
             }
         }
@@ -767,7 +712,7 @@ void statement(token tokenArray[]){
             exit(1);
         }
         //if it is not a var
-        if(symbol_table[symIdx].kind != 2){
+        if(table[symIdx].kind != 2){
             printf("\nError: Only variable values may be altered");
             exit(1);
         }
@@ -779,7 +724,7 @@ void statement(token tokenArray[]){
         emit(9,0,2);
 
         //emit STO(M = table[symIdx].addr)
-        emit(4,0,symbol_table[symIdx].addr);
+        emit(4,0,table[symIdx].addr);
 
         return;
     }
@@ -792,18 +737,13 @@ void statement(token tokenArray[]){
         return;
     }
     else if(tokenArray[idx].token == xorsym){
-        /*Debug*/
-        // printf("\nCurrent token at xorsym: %s\n", tokenArray[idx].type);
         
         //get next token
         idx++;
 
-        /*Debug*/
-        // printf("\nCurrent token at xorsym: %s\n", tokenArray[idx].type);
-
         condition(tokenArray);
         int jpcIdx = codeIndex;
-        //emit JPC, OPR = 7, M = 0 for now
+
         emit(7,0,0);
         if(tokenArray[idx].token != thensym){
             printf("\nError: XOR must be followed by then");
@@ -813,13 +753,7 @@ void statement(token tokenArray[]){
         //get next token
         idx++;
 
-        /*Debug*/
-        // printf("\nCurrent token at z: %s\n",tokenArray[idx].type);
-
         statement(tokenArray);
-
-        /*Debug*/
-        // printf("\nCurrent token at ;: %s\n",tokenArray[idx].type);
 
         //FIXME: what we should print for error
         if(tokenArray[idx].token != semicolonsym){
@@ -839,19 +773,14 @@ void statement(token tokenArray[]){
         statement(tokenArray);
 
         //update m
-        codeStack[jpcIdx].m = codeIndex;
-
-        /*Debug*/
-        // printf("\nThe token at the end of xor is : %s\n",tokenArray[idx].type);
-
-        
+        assembly[jpcIdx].m = codeIndex;
 
     }
 
 }
 
 //NOTE: also need to take care of lexical level, has problem if value is 3.14
-void const_declaration(token tokenArray[]){
+void constDeclaration(token tokenArray[]){
     if(tokenArray[idx].token == constsym){
         do{
             //get next token
@@ -860,7 +789,7 @@ void const_declaration(token tokenArray[]){
                 printf("Error: const keywords must be followed by identifiers ");
                 exit(1);
             }
-            //if (symbol_table_check(tokenArray[idx)) != -1)   //NOTE: ASK PROF HERE
+            //if (checkTable(tokenArray[idx)) != -1)   //NOTE: ASK PROF HERE
                 //printf('Error: ');
                 //exit(0);
             
@@ -885,8 +814,8 @@ void const_declaration(token tokenArray[]){
             }
 
             //if table is empty or it is not in the list, add it. Otherwise if it is in the table, return false
-            if(table_index == 0 || symbol_table_check(indentName,1) == 0) {
-                symbol_table_add(1,indentName,tokenArray[idx].val,0,0);
+            if(table_index == 0 || checkTable(indentName,1) == 0) {
+                addTable(1,indentName,tokenArray[idx].val,0,0);
             }else{
                 printf("Error: symbol name has already been declared");
                 exit(1);
@@ -1008,7 +937,7 @@ void factor(token tokenArray[]){
 
         //check for undeclared
         for(int i = table_index - 1; i > 0 ; i--){
-            if(strcmp(tokenArray[idx].type, symbol_table[i].name) == 0){
+            if(strcmp(tokenArray[idx].type, table[i].name) == 0){
                 symIdx = i;
             }
         }
@@ -1020,13 +949,13 @@ void factor(token tokenArray[]){
         }
 
         //var or const
-        if(symbol_table[symIdx].kind == 1){         
+        if(table[symIdx].kind == 1){         
             //emit LID(M = table[symIdx].value), opcode = 1
-            emit(1 , 0, symbol_table[symIdx].val); 
+            emit(1 , 0, table[symIdx].val); 
         }
-        else if(symbol_table[symIdx].kind == 2){
+        else if(table[symIdx].kind == 2){
             //emit LOD (M = table[symIdx].address), opcode = 3
-            emit(3 , 0, symbol_table[symIdx].addr);
+            emit(3 , 0, table[symIdx].addr);
         }
 
         //get next token
@@ -1085,40 +1014,40 @@ void term(token tokenArray[]){
 }
 
 void emit(int op, int l, int m){
-    if(codeIndex > CODE_SIZE){
+    if(codeIndex > MAX_SYMBOL_TABLE_SIZE){
         printf("Error: Code index exceeds code max size");
         exit(1);
     }
     else{
-        codeStack[codeIndex].op = op;
-        codeStack[codeIndex].l = l;
-        codeStack[codeIndex].m = m;
+        assembly[codeIndex].op = op;
+        assembly[codeIndex].l = l;
+        assembly[codeIndex].m = m;
         codeIndex++;
     }
 }
 //add token into symbol table
-void symbol_table_add(int kind_of_token ,char name_of_token[],int val_of_token, int level_of_token, int addr_of_token){
-    symbol_table[table_index].kind = kind_of_token;
-    strcpy(symbol_table[table_index].name,name_of_token);
-    symbol_table[table_index].val = val_of_token;
-    symbol_table[table_index].level = level_of_token;
-    symbol_table[table_index].addr = addr_of_token;
-    symbol_table[table_index].mark = 0;  //initilize equal = 0 for now
+void addTable(int kind_of_token ,char name_of_token[],int val_of_token, int level_of_token, int addr_of_token){
+    table[table_index].kind = kind_of_token;
+    strcpy(table[table_index].name,name_of_token);
+    table[table_index].val = val_of_token;
+    table[table_index].level = level_of_token;
+    table[table_index].addr = addr_of_token;
+    table[table_index].mark = 0;  //initilize equal = 0 for now
 
     table_index++;
 }
 
 
 //return idx if found, otherwise return -1
-int symbol_table_check(char string[], int string_kind){
+int checkTable(char string[], int string_kind){
     // printf("\n symbol table size; %d\n", table_index);
 
     int symbol_index = table_index - 1;
 
     //linear search through the symbol table looking at name
     while(symbol_index != 0){
-        // printf("\n %s\t\t %d", symbol_table[symbol_index].name, symbol_table[symbol_index].kind);
-        if((strcmp(symbol_table[symbol_index].name, string) == 0) && symbol_table[symbol_index].kind == string_kind){
+        // printf("\n %s\t\t %d", table[symbol_index].name, table[symbol_index].kind);
+        if((strcmp(table[symbol_index].name, string) == 0) && table[symbol_index].kind == string_kind){
             // printf("\n return symbol index value %d\n", symbol_index);
             return symbol_index;
         }
@@ -1126,19 +1055,6 @@ int symbol_table_check(char string[], int string_kind){
     }
 
     return 0;
-}
-
-void symbol_table_print(){
-    int i = 1;
-
-    printf("\nSymbol Table: ");
-    printf("\nKind\t\tName\t\tValue\t\tLevel\t\tAddress\t\tMark");
-    while(i < table_index){
-        printf("\n%d\t\t%s\t\t%d\t\t%d\t\t%d\t\t%d",symbol_table[i].kind, symbol_table[i].name, 
-        symbol_table[i].val, symbol_table[i].level, 
-        symbol_table[i].addr, symbol_table[i].mark);
-        i++;
-    }
 }
 
 void typeOPR(char stringOPR[], int opr){
@@ -1186,29 +1102,27 @@ void typeOPR(char stringOPR[], int opr){
 }
 
 
-void print_assembly_code(){
+void printAssembly(){
     printf("\nAssembly Code");
     printf("\nLine\t\tOP\t\tL\t\tM");
     int line = 0;
 
     for(int i = 0; i < codeIndex; i++){
         char string[100];
-        /*Debug*/
-        // printf("\nCurrent opcode is %d\n", codeStack[i].op);
 
-        if (codeStack[i].op == 2)
-            typeOPR(string, codeStack[i].m);
+        if (assembly[i].op == 2)
+            typeOPR(string, assembly[i].m);
         else 
-        typeOpCode(string,codeStack[i].op);
+        OpCode(string,assembly[i].op);
 
-        printf("\n%d\t\t%s\t\t%d\t\t%d ",line,string,codeStack[i].l,codeStack[i].m);
+        printf("\n%d\t\t%s\t\t%d\t\t%d ",line,string,assembly[i].l,assembly[i].m);
         line++;
     }
 }
 
 
 //Print assymbly code
-void typeOpCode(char stringOP[], int OP){
+void OpCode(char stringOP[], int OP){
     switch (OP)
     {
         case LIT:
