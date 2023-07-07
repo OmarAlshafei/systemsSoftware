@@ -49,11 +49,9 @@ typedef struct{
 instructions assembly[MAX_SYMBOL_TABLE_SIZE];
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 token* tokenArr; 
-int tableIndex = 0;    // index of the symbol table
+int tableIndex = 1;    // index of the symbol table
 int curToken;          // stores the current token to analyze
-int maxToken;          // stores the max index of token array
-int curTokenIdx = 0;   // stores the current token to analyze
-int lineCount = 0;
+int codeIndex = 0;     // index of the stack
 
 
 // return 1 if char is a special symbols, else return 0
@@ -82,6 +80,7 @@ void addTable(int, char*, int, int, int, int);
 int checkTable(int, char*);
 void printTable();
 int getToken(FILE*);
+int emit(char*, int, int);
 
 
 // driver function 
@@ -99,7 +98,7 @@ int main(int argc, char *argv[]) {
 
     // local variables 
     char reservedWords[14][20] = {"const", "var", "call", "begin", "end", "if", "then",
-                                  "xor", "while", "do", "read", "write", "odd"};
+                                  "xor", "else", "while", "do", "read", "write", "odd"};
     char* inputStr;     // hold the input from file
     char buffer[25];    // temporary string 
     int len;            // length of the file
@@ -211,37 +210,37 @@ int main(int argc, char *argv[]) {
             }
 
             // else
-            // else if(strcmp(buffer, reservedWords[8]) == 0){
-            //     strcpy(tokenArr[tokenIdx].type, "else");
-            //     tokenArr[tokenIdx].token = elsesym; 
-            // }
+            else if(strcmp(buffer, reservedWords[8]) == 0){
+                strcpy(tokenArr[tokenIdx].type, "else");
+                tokenArr[tokenIdx].token = elsesym; 
+            }
 
             // while
-            else if(strcmp(buffer, reservedWords[8]) == 0){
+            else if(strcmp(buffer, reservedWords[9]) == 0){
                 strcpy(tokenArr[tokenIdx].type, "while");
                 tokenArr[tokenIdx].token = whilesym; 
             }
 
             // do
-            else if(strcmp(buffer, reservedWords[9]) == 0){
+            else if(strcmp(buffer, reservedWords[10]) == 0){
                 strcpy(tokenArr[tokenIdx].type, "do");
                 tokenArr[tokenIdx].token = dosym; 
             }
 
             // read
-            else if(strcmp(buffer, reservedWords[10]) == 0){
+            else if(strcmp(buffer, reservedWords[11]) == 0){
                 strcpy(tokenArr[tokenIdx].type, "read");
                 tokenArr[tokenIdx].token = readsym; 
             }
 
             // write
-            else if(strcmp(buffer, reservedWords[11]) == 0){
+            else if(strcmp(buffer, reservedWords[12]) == 0){
                 strcpy(tokenArr[tokenIdx].type, "write");
                 tokenArr[tokenIdx].token = writesym; 
             }
 
             // odd
-            else if(strcmp(buffer, reservedWords[12]) == 0){
+            else if(strcmp(buffer, reservedWords[13]) == 0){
                 strcpy(tokenArr[tokenIdx].type, "odd");
                 tokenArr[tokenIdx].token = oddsym; 
             }
@@ -448,17 +447,15 @@ int main(int argc, char *argv[]) {
     
     FILE *ifp = fopen("lexemelist.txt", "w+");
     fputs(tokenVar, ifp);
-    fclose(ifp);
 
-    FILE *rfp = fopen("lexemelist.txt", "r");
-    if (program(rfp) == -1){
+    if (program(ifp) == -1){
         printf("Error");
         fclose(ifp);
         return -1;
     }
     
     fclose(fp);
-    fclose(rfp);
+    fclose(ifp);
     free(tokenVar);
     free(inputStr);
 }
@@ -475,7 +472,7 @@ int getToken(FILE* input){
     }
 
     printf("End of file");
-    return INT32_MIN;
+    return -9999;
 }
 
 // skip tokens until a “;” is found 
@@ -484,7 +481,7 @@ void errorRecovery(FILE *input){
     while(curToken != semicolonsym){
         curToken = getToken(input);
 
-        if(curToken == INT32_MIN){
+        if(curToken == -9999){
             printf("Error: no more token before finding ;");
             exit(1);
         }
@@ -533,18 +530,15 @@ int program(FILE *input){
     if (block(input) == -1){
         return -1;
     }
-    if (tokenArr->token != periodsym){
-        printf("Error : program must end with period %d %s\n", tokenArr->token, tokenArr->type);
-        return -1;
-    }
+
     
-    // FIXME - emit(9, "SYS", 0, 3); we need to make an emit func
+    emit("SYS", 0, 3);
     
     printf("Assembly Code:\n\n");
     printf("Line\tOP\tL\tM\n");
     printf("  0\tJMP\t0\t3\n");
 
-    for (int i = 0; i < lineCount; i++){
+    for (int i = 0; i < codeIndex; i++){
         printf("%d\t%s\t%d\t%d\n", i, assembly[i].OP, assembly[i].L, assembly[i].M);
     }
 
@@ -556,7 +550,7 @@ int block(FILE *input){
   int contant = constDeclaration(input);
   int var = varDeclaration(input);
 
-  //emit(6, "INC", 0, (4 + num)); we need to make an emit func
+  emit("INC", 0, 4);
   
   int result = statement(input);
 
@@ -583,12 +577,12 @@ int constDeclaration(FILE *input){
                 exit(1);
             }
 
-            fscanf(input, "%d", tempName);
+            fscanf(input, "%s", tempName);
 
             curToken = getToken(input);
 
             if(curToken != becomessym){
-                printf("Error: constants must be assigned with := ");
+                printf("Error: constants must be assigned with = ");
                 exit(1);
             }
 
@@ -614,6 +608,213 @@ int constDeclaration(FILE *input){
     }
 }
 
+// returns number of variables
+int varDeclaration(FILE *input){
+    int numVars = 0;
+    curToken = getToken(input);
+    
+    if(curToken == varsym){
+        do{
+            numVars++; 
+
+            curToken = getToken(input);
+
+            if(curToken != identsym){
+                printf("Error: var keywords must be followed by identifier");
+                exit(1);
+            }
+
+            char tempName[10];
+            fscanf(input, "%s", tempName);
+
+            if(checkTable(tempName, 2) == -1){
+                addTable(2, tempName, 0, 0, numVars + 2, 0);
+            }
+            else{
+                printf("Symbol name has already been declared");
+                exit(1);
+            }
+
+            curToken = getToken(input);
+        }while(curToken == commasym);
+
+        // error handling
+        if(curToken != semicolonsym){
+            printf("Error: variable declarations must be followed by a semicolon");
+            errorRecovery(input);
+        }
+    }
+
+    return numVars;
+}
+
+
+int statement(FILE* input){
+    // curToken = getToken(input);
+    char tempName[10];
+
+    if(curToken == identsym){
+        fscanf(input, "%s", tempName);
+
+        int symIdx = checkTable(2, tempName);
+
+        if(symIdx == -1){
+            printf("Error: undeclared identifier");
+             exit(1);
+        }
+
+        if(symbol_table[symIdx].kind != 2){
+            printf("\nError: Only variable values may be altered");
+            exit(1); 
+        }
+
+        curToken = getToken(input);
+        if(curToken != becomessym){
+            printf("\nError: assignment statements must use :=");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+        expression(input);
+        emit("STO", 0, symbol_table[symIdx].addr);
+        return 1;
+    }
+
+    else if(curToken == beginsym){
+        do{
+            curToken = getToken(input);
+            statement(input);
+        }while(curToken == semicolonsym);
+
+        if(curToken != endsym){
+            printf("\nError: begin must be followed by end");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+        return 1;
+    }
+
+    else if(curToken == ifsym){
+        curToken = getToken(input);
+        condition(input);
+
+        int jpcIdx = codeIndex;
+
+        emit ("JPC", 0, 0);
+
+        if(curToken != thensym){
+            printf("\nError: if must be followed by then");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+        statement(input);
+        assembly[jpcIdx].M = codeIndex;
+        return 1;
+    }
+
+    else if(curToken == whilesym){
+        curToken = getToken(input);
+
+        int loopIdx = codeIndex; 
+        condition(input);
+
+        if(curToken != dosym){
+            printf("\nError: while must be followed by do");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+        int jpcIdx = codeIndex;
+
+        emit ("JPC", 0, 0);
+
+        statement(input);
+
+        emit("JMP", 0 , loopIdx);
+        assembly[jpcIdx].M = codeIndex; 
+        return 1; 
+    }
+
+    else if(curToken == readsym){
+        curToken = getToken(input);
+
+        if(curToken != identsym){
+            printf("\nError: read keywords must be followed by identifier");
+            exit(1);
+        }
+
+        fscanf(input, "%s", tempName);
+
+        int symIdx = -1;
+
+        for(int i = tableIndex - 1; i > 0; i--){
+            if(strcmp(symbol_table[i].name, tempName) == 0)
+                symIdx = i;
+        }
+
+        if(symIdx == -1){
+            printf("\nError: Undeclared identifier");
+            exit(1);
+        }
+
+        if(symbol_table[symIdx].kind != 2){
+            printf("\nError: only variable values may be altered");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+
+        emit("SYS", 0, 2);
+        emit("STO", 0, symbol_table[symIdx].addr);
+
+        return 1; 
+    }
+
+    else if(curToken == writesym){
+        curToken = getToken(input);
+        expression(input);
+        emit("SYS", 0, 1);
+        return 1;
+    }
+
+    else if(curToken == xorsym){
+        curToken = getToken(input);
+
+        condition(input);
+        int jpcIdx = codeIndex;
+
+        emit("JPC", 0, 0);
+
+        if(curToken != thensym){
+            printf("\nError: XOR must be followed by then");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+
+        statement(input);
+
+        if(curToken != semicolonsym){
+            printf("\nError: missing a semicolon");
+            errorRecovery(input);
+        }
+
+        curToken = getToken(input);
+        if(curToken != elsesym){
+            printf("\nError: XOR must be follow by then and follow else");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+        statement(input);
+
+        assembly[jpcIdx].M = codeIndex;
+
+    }
+}
+
 
 int condition(FILE *input){
     curToken = getToken(input);
@@ -624,7 +825,7 @@ int condition(FILE *input){
     if (expression(input) == -1) 
         return -1;
 
-    emit(2, "OPR", 0, 6);
+    emit("OPR", 0, 6);
     }
     else{
         if (expression(input) == -1) 
@@ -635,37 +836,37 @@ int condition(FILE *input){
                 getToken(input);
                 if (expression(input) == -1) 
                     return -1;
-                emit(2, "OPR", 0, 8);
+                emit("OPR", 0, 8);
                 break;
             case neqsym:
                 getToken(input);
                 if (expression(input) == -1) 
                     return -1;
-                emit(2, "OPR", 0, 9);
+                emit("OPR", 0, 9);
                 break;
             case lessym:
                 getToken(input);
                 if (expression(input) == -1) 
                     return -1;
-                emit(2, "OPR", 0, 10);
+                emit("OPR", 0, 10);
                 break;
             case leqsym:
                 getToken(input);
                 if (expression(input) == -1) 
                     return -1;
-                emit(2, "OPR", 0, 11);
+                emit("OPR", 0, 11);
                 break;
             case gtrsym:
                 getToken(input);
                 if (expression(input) == -1) 
                     return -1;
-                emit(2, "OPR", 0, 12);
+                emit("OPR", 0, 12);
                 break;
             case geqsym:
                 getToken(input);
                 if (expression(input) == -1) 
                     return -1;
-                emit(2, "OPR", 0, 13);
+                emit("OPR", 0, 13);
                 break;
             default:
                 printf("Error : condition must contain comparison operator");
@@ -686,20 +887,20 @@ int expression(FILE *input){
         if (term(input) == -1)
             return -1;
         
-        emit(2, "OPR", 0, 1);
+        emit("OPR", 0, 1);
 
         while (curToken == plussym || curToken == minussym){
             if (curToken == plussym){
                 curToken = getToken(input);
                 if (term(input) == -1)
                     return -1;
-                emit(2, "OPR", 0, 2);
+                emit("OPR", 0, 2);
             }
             else{
                 curToken = getToken(input);
                 if (term(input) == -1)
                     return -1;
-                emit(2, "OPR", 0, 3);
+                emit("OPR", 0, 3);
             }
         }
     }
@@ -715,13 +916,13 @@ int expression(FILE *input){
                 curToken = getToken(input);
                 if (term(input) == -1)
                     return -1;
-                emit(2, "OPR", 0, 2);
+                emit("OPR", 0, 2);
             }
             else{
                 curToken = getToken(input);
                 if (term(input) == -1)
                     return -1;
-                emit(2, "OPR", 0, 3);
+                emit("OPR", 0, 3);
             }
         }
     }
@@ -729,7 +930,7 @@ int expression(FILE *input){
 }
 
 int term(FILE *input){
-    curToken = getToken(input);
+    //curToken = getToken(input);
 
   if (factor(input) == -1){
     return -1;
@@ -742,18 +943,18 @@ int term(FILE *input){
             curToken = getToken(input);
             if (factor(input) == -1)
             return -1;
-            emit(2, "OPR", 0, 4);
+            emit("OPR", 0, 3);
             break;
         
         case slashsym:
             curToken = getToken(input);
             if (factor(input) == -1)
             return -1;
-            emit(2, "OPR", 0, 5);
+            emit("OPR", 0, 4);
             break;
         
         default:
-            printf("Error : Unexpected token %d. Line %d.\n", curToken, lineCount);
+            printf("Error : Unexpected token %d. Line %d.\n", curToken, codeIndex);
             return -1;
             
     }
@@ -761,4 +962,71 @@ int term(FILE *input){
   }
 
   return 1;
+}
+
+int factor(FILE *input){
+    char tempName[10];
+
+    if(curToken == identsym){
+        fscanf(input, "%s", tempName);
+
+        int symIdx = -1;
+
+        for(int i = tableIndex - 1; i > 0; i--){
+            if(strcmp(symbol_table[i].name, tempName) == 0)
+                symIdx = i;
+        }
+
+        if(symIdx == -1){
+            printf("\nError: something is gone");
+            exit(1);
+        }
+
+        // var or const
+        if(symbol_table[symIdx].kind == 1){
+            emit("LIT", 0, symbol_table[symIdx].val);
+        }
+        else if(symbol_table[symIdx].kind == 2){
+            emit("LOD", 0, symbol_table[symIdx].addr);
+        }
+
+        curToken = getToken(input);
+    }
+
+    else if(curToken == numbersym){
+        emit("LIT", 0, curToken);
+
+        curToken = getToken(input);
+    }
+
+    else if(curToken == lparentsym){
+        curToken = getToken(input);
+
+        expression(input);
+
+        if(curToken != rparentsym){
+            printf("\nError: right parenthesis must follow left parenthesis");
+            exit(1);
+        }
+
+        curToken = getToken(input);
+    }
+
+    else {
+        printf("\nError: Arithmetic equations must contain operands, parentheses, numbers, or symbols"); 
+        exit(1);
+    }
+}
+
+int emit(char op[4], int l, int m){
+    if(codeIndex > MAX_SYMBOL_TABLE_SIZE){
+        printf("Error: Code index exceeds code max size");
+        exit(1);
+    }
+    else{
+        strcpy(assembly[codeIndex].OP, op);
+        assembly[codeIndex].L = l;
+        assembly[codeIndex].M = m;
+        codeIndex++;
+    }
 }
