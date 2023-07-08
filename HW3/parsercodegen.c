@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
     }
 
     // local variables 
-    char reservedWords[14][20] = {"const", "var", "procedure", "call", "begin", "end", "if", "then",
+    char reservedWords[14][20] = {"const", "var", "odd", "call", "begin", "end", "if", "then",
                                   "xor", "else", "while", "do", "read", "write"};
     char* inputStr;     // hold the input from file
     char buffer[25];    // temporary string 
@@ -159,7 +159,9 @@ int main(int argc, char *argv[]) {
         // check for comment
         else if (inputStr[cur] == '/' && inputStr[cur + 1] == '*' ){
             cur += 2;
-            while(inputStr[cur] != '*' && inputStr[cur + 1] != '/'){
+
+            // FIXME - recheck logic
+            while(inputStr[cur] != '*' || inputStr[cur + 1] != '/'){
                 cur++;
             }
             cur += 2;
@@ -199,10 +201,10 @@ int main(int argc, char *argv[]) {
                 tokenArr[tokenIdx].token = varsym; 
             }
 
-            // procedure
+            // odd
             else if(strcmp(buffer, reservedWords[2]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "procedure");
-                tokenArr[tokenIdx].token = procsym; 
+                strcpy(tokenArr[tokenIdx].type, "odd");
+                tokenArr[tokenIdx].token = oddsym; 
             }
 
             // call
@@ -481,6 +483,18 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // printing Token List
+    for(int i = 0; i < tokenIdx; i++){
+        printf("%d ", tokenArr[i].token);
+
+        if(tokenArr[i].token == 3){
+            printf("%d ", tokenArr[i].val);
+        }
+        if(tokenArr[i].token == 2){
+            printf("%s ", tokenArr[i].type);
+        }          
+    }
+
     program(tokenArray, size);
     
     printAssembly();
@@ -561,15 +575,19 @@ int varDeclaration(token tokenArray[]){
 
 
 void statement(token tokenArray[]){
-    if(tokenArray[idx].token == identsym){
+
+   if(tokenArray[idx].token == identsym){
 
         int symIdx = 0;
         
-        //check if identifier has been declared
-
-        for (int i = table_index; i > 0; i--){
-            if(table[i].kind == 2){
-                symIdx = i;
+        for(int i = table_index - 1; i > 0; i--){
+            if(strcmp(tokenArray[idx].type, table[i].name) == 0){
+                if(table[i].kind == 1){
+                    exit(1);
+                }
+                else if(table[i].kind == 2){
+                    symIdx = i;
+                }
             }
         }
         
@@ -628,7 +646,7 @@ void statement(token tokenArray[]){
 
         //emit JPC, OPR = 7, M = 0 for now
         //FIXME:make sure m is updated
-        emit(7, 0, 0);
+        emit(8, 0, 0);
 
         if(tokenArray[idx].token != thensym){
             printf("\nError: If must be followed by then\n");
@@ -641,7 +659,7 @@ void statement(token tokenArray[]){
         statement(tokenArray);
         
         //update m
-        assembly[jpc_idx].m = codeIndex;
+        assembly[jpc_idx].m = codeIndex * 3;
         return; 
     }
     else if(tokenArray[idx].token == whilesym){
@@ -663,15 +681,15 @@ void statement(token tokenArray[]){
 
         //emit JPC, OPR = 7, M = 0 for now??
         //FIXME: do we update at line 1058
-        emit(8,0,0);
+        emit(8, 0, 0);
 
         statement(tokenArray);
 
         //emit JMP (M = loop_idx), OPR = 7
-        emit(7,0,loop_idx);
+        emit(7, 0, loop_idx * 3);
 
         //update m for JPC
-        assembly[jpc_idx].m = codeIndex;
+        assembly[jpc_idx].m = codeIndex * 3;
         return;
     }
     else if(tokenArray[idx].token == readsym){
@@ -730,7 +748,7 @@ void statement(token tokenArray[]){
         condition(tokenArray);
         int jpcIdx = codeIndex;
 
-        emit(7,0,0);
+        emit(8,0,0);
         if(tokenArray[idx].token != thensym){
             printf("\nError: XOR must be followed by then\n");
             exit(1);
@@ -759,7 +777,7 @@ void statement(token tokenArray[]){
         statement(tokenArray);
 
         //update m
-        assembly[jpcIdx].m = codeIndex;
+        assembly[jpcIdx].m = codeIndex * 3;
 
     }
 
@@ -868,28 +886,28 @@ void condition(token tokenArray[]){
             idx++;
             expression(tokenArray);
             //emit EQL, OPR = 2, EQL = 6
-            emit(2,0,6);
+            emit(2,0,5);
         }
         else if(tokenArray[idx].token == neqsym){               // <>
             //get next token
             idx++;
             expression(tokenArray);
             //emit NQL, OPR = 2, NQL = 7
-            emit(2,0,7);
+            emit(2,0,6);
         }
         else if(tokenArray[idx].token == lessym){               // <
             //get next token
             idx++;
             expression(tokenArray);
             //emit LSS, OPR = 2, LSS = 8
-            emit(2,0,8);
+            emit(2,0,7);
         }
         else if(tokenArray[idx].token == leqsym){               // <= (NOTE: ASK ABOUT THIS <= OR =<)
             //get next token
             idx++;
             expression(tokenArray);
             //emit LEQ, OPR = 2, LEQ = 9
-            emit(2,0,9);
+            emit(2,0,8);
 
         }
         else if(tokenArray[idx].token == gtrsym){               // >
@@ -897,14 +915,14 @@ void condition(token tokenArray[]){
             idx++;
             expression(tokenArray);
             //emit GTR, OPR = 2, GTR = 10
-            emit(2,0,10);
+            emit(2,0,9);
         }
         else if(tokenArray[idx].token == geqsym){               // >=
             //get next token
             idx++;
             expression(tokenArray);
             //emit GEQ, OPR = 2, GEQ = 11
-            emit(2,0,11);
+            emit(2,0,10);
         }
         else{
             printf("\nError:Condition must contain comparison operator\n");
@@ -1090,18 +1108,21 @@ void typeOPR(char stringOPR[], int opr){
 
 void printAssembly(){
     printf("\nAssembly Code: ");
-    printf("\nLine\t\tOP\t\tL\t\tM");
+    printf("\nLine\tOP\tL\tM");
     int line = 0;
 
     for(int i = 0; i < codeIndex; i++){
         char string[100];
 
+
         if (assembly[i].op == 2)
             typeOPR(string, assembly[i].m);
         else 
-        OpCode(string,assembly[i].op);
+            OpCode(string,assembly[i].op);
 
-        printf("\n%d\t\t%s\t\t%d\t\t%d ",line,string,assembly[i].l,assembly[i].m);
+
+
+        printf("\n%d\t%s\t%d\t%d ",line,string,assembly[i].l,assembly[i].m);
         line++;
     }
 }
