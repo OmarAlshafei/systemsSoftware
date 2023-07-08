@@ -79,9 +79,6 @@ typedef enum {
     readsym , elsesym
 } token_type;
 
-
-
-void print(char *source,int len);
 int isSpecialSymbol(char ch);
 void addTable(int, char*, int, int, int);
 int checkTable(char string[], int string_kind);
@@ -1114,13 +1111,10 @@ void printAssembly(){
     for(int i = 0; i < codeIndex; i++){
         char string[100];
 
-
         if (assembly[i].op == 2)
             typeOPR(string, assembly[i].m);
         else 
             OpCode(string,assembly[i].op);
-
-
 
         printf("\n%d\t%s\t%d\t%d ",line,string,assembly[i].l,assembly[i].m);
         line++;
