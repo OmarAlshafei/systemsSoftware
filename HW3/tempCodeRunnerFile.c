@@ -1,2 +1,0 @@
-
-                strcpy(tokenArr[tokenIdx].type, ">");
