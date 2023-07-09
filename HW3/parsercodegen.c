@@ -702,6 +702,7 @@ void statement(token tokenArray[]){
         for(int i = table_index - 1; i > 0; i--){
             if(strcmp(tokenArray[idx].type, table[i].name) == 0){
                 if(table[i].kind == 1){
+                    printf("\nError: only variable values may be altered \n");
                     exit(1);
                 }
                 else if(table[i].kind == 2){
