@@ -47,4 +47,4 @@ Line    OP      L       M
 44      ADD     0       1 
 45      STO     0       5 
 46      JMP     0       114 
-Error: program must end with period 
+Error: program must end with period

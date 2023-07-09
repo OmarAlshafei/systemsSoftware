@@ -20,4 +20,4 @@ Line    OP      L       M
 17      LIT     0       10 
 18      DIV     0       4 
 19      STO     0       5 
-Error: only variable values may be altered 
+Error: only variable values may be altered

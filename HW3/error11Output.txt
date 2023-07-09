@@ -26,4 +26,4 @@ Line    OP      L       M
 23      LOD     0       3 
 24      NEQ     0       6 
 25      JPC     0       75 
-Error: if must be followed by then 
+Error: if must be followed by then

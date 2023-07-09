@@ -1,4 +1,4 @@
 Assembly Code: 
 Line    OP      L       M
 0       JMP     0       3 
-Error: constants must be assigned with an integer value 
+Error: constants must be assigned an integer value

@@ -12,4 +12,4 @@ Line    OP      L       M
 9       SUB     0       2 
 10      MUL     0       3 
 11      STO     0       4 
-Error: undeclared symbol 
+Error: undeclared identifier

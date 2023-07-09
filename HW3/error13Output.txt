@@ -23,4 +23,4 @@ Line    OP      L       M
 20      SYS     0       2 
 21      STO     0       5 
 22      LOD     0       4 
-Error: condition must contain comparison operator 
+Error: condition must contain comparison operator

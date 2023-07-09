@@ -605,7 +605,7 @@ void constDeclaration(token tokenArray[]){
             idx++;
             if(tokenArray[idx].token != identsym){
             printThis();
-                printf("Error: const keywords must be followed by identifiers \n");
+                printf("Error: const, var, and read keywords must be followed by identifier\n");
                 exit(1);
             }
             
@@ -632,7 +632,7 @@ void constDeclaration(token tokenArray[]){
             idx++;
             if(tokenArray[idx].token != numbersym){
             printThis();
-                printf("Error: constants must be assigned with an integer value \n");
+                printf("Error: constants must be assigned an integer value\n");
                 exit(1);
             }
 
@@ -651,7 +651,7 @@ void constDeclaration(token tokenArray[]){
         }while(tokenArray[idx].token == commasym);
 
         if(tokenArray[idx].token != semicolonsym){
-            printf("Error: constant declaration must be followed by a semicolon \n");
+            printf("Error: constant and variable declarations must be followed by a semicolon\n");
             errorRecovery(tokenArray);
         }
     }
@@ -689,7 +689,7 @@ int varDeclaration(token tokenArray[]){
         }while(tokenArray[idx].token == commasym);
 
         if(tokenArray[idx].token != semicolonsym){
-            printf("Error: variable declarations must be followed by a semicolon \n");
+            printf("Error: constant and variable declarations must be followed by a semicolon\n");
             errorRecovery(tokenArray);
         }
     }
@@ -720,7 +720,7 @@ void statement(token tokenArray[]){
         
         if (symIdx == -1){
             printThis();
-            printf("Error: undeclared symbol \n");
+            printf("Error: undeclared identifier\n");
             exit(1); 
         }
         
@@ -887,7 +887,7 @@ void statement(token tokenArray[]){
 
         if(symIdx == -1){
             printThis();
-            printf("Error: undeclared identifier \n");
+            printf("Error: undeclared identifier\n");
             exit(1);
         }
         if(table[symIdx].kind != 2){
@@ -1050,7 +1050,7 @@ void factor(token tokenArray[]){
 
         if(symIdx == -1){
             printThis();
-            printf("Error: undeclared identifier \n");
+            printf("Error: undeclared identifier\n");
             exit(1);
         }
 

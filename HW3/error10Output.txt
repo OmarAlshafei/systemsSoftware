@@ -48,4 +48,4 @@ Error: expected a semicolon HERE
 44      ADD     0       1 
 45      STO     0       5 
 46      JMP     0       114 
-Error: begin must be followed by end 
+Error: begin must be followed by end
