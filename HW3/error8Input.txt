@@ -1,11 +1,11 @@
 const a = 2, b = 3;
 var x, y, z;
 begin
-  /* This code is going to do a bunch of random stuff
-  in the hopes that your code can work... *hopefully**/
+  /*only variable values may be altered*/
   x := a + 5;
   y := a * (x - b);
   z := (b + y * x) / 10;
+  b = 5;
   read z;
   if y <> x then 
     write y;
@@ -15,5 +15,4 @@ begin
     y := z;
   while z < 3 do
     z := z + 1;
-
-//begin must be followed by end
+end.
