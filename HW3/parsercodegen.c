@@ -747,7 +747,7 @@ void statement(token tokenArray[]){
             if(tokenArray[idx].token != semicolonsym && tokenArray[idx].token != endsym){
                 printError();
                 printf("Error: expected a semicolon HERE\n");
-                errorRecovery(tokenArray);
+                errorRecovery(tokenArray);            
             }
 
         }while (tokenArray[idx].token == semicolonsym);
