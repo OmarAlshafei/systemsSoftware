@@ -12,7 +12,7 @@
 #define IDENT_MAX 11
 #define NUM_MAX 5
 #define MAX_SYMBOL_TABLE_SIZE 500
-
+int x = 0;
 // symbol table struct 
 typedef struct {
     int kind;           // const = 1, var = 2, proc = 3
@@ -459,11 +459,11 @@ int main(int argc, char *argv[]) {
     printf("Line\tOP\tL\tM\n");
     // call program
     program(tokenArr, tokenIdx);
-    for(int i = 0; i < codeIndex; i++){
+    while(x < codeIndex){
         char str[5];
 
-        if (assembly[i].op == 2){
-            switch (assembly[i].m){
+        if (assembly[x].op == 2){
+            switch (assembly[x].m){
                 case 0:
                     strcpy(str, "RTN");
                     break;
@@ -505,7 +505,7 @@ int main(int argc, char *argv[]) {
             }  
         }
         else{
-            switch (assembly[i].op){
+            switch (assembly[x].op){
                 case 1:
                     strcpy(str, "LIT");
                     break;
@@ -538,7 +538,8 @@ int main(int argc, char *argv[]) {
             }  
         }
 
-        printf("%d\t%s\t%d\t%d \n", i, str, assembly[i].l, assembly[i].m);
+        printf("%d\t%s\t%d\t%d \n", x, str, assembly[x].l, assembly[x].m);
+        x++;
     }
     
     printf("\n");
@@ -640,6 +641,7 @@ void constDeclaration(token tokenArray[]){
         }while(tokenArray[idx].token == commasym);
 
         if(tokenArray[idx].token != semicolonsym){
+            printError();
             printf("Error: constant and variable declarations must be followed by a semicolon\n");
             errorRecovery(tokenArray);
         }
@@ -677,6 +679,7 @@ int varDeclaration(token tokenArray[]){
         }while(tokenArray[idx].token == commasym);
 
         if(tokenArray[idx].token != semicolonsym){
+            printError();
             printf("Error: constant and variable declarations must be followed by a semicolon\n");
             errorRecovery(tokenArray);
         }
@@ -742,6 +745,7 @@ void statement(token tokenArray[]){
 
             // FIXME - bug here
             if(tokenArray[idx].token != semicolonsym && tokenArray[idx].token != endsym){
+                printError();
                 printf("Error: expected a semicolon HERE\n");
                 errorRecovery(tokenArray);
             }
@@ -800,6 +804,7 @@ void statement(token tokenArray[]){
         statement(tokenArray);
 
         if(tokenArray[idx].token != semicolonsym){
+            printError();
             printf("Error: expected a semicolon\n");
             errorRecovery(tokenArray);
         }
@@ -1125,11 +1130,11 @@ void errorRecovery(token tokenArray[]){
 
 // print the current assembly line
 void printError(){
-    for(int i = 0; i < codeIndex; i++){
+    while(x < codeIndex){
         char str[5];
 
-        if (assembly[i].op == 2){
-            switch (assembly[i].m){
+        if (assembly[x].op == 2){
+            switch (assembly[x].m){
                 case 0:
                     strcpy(str, "RTN");
                     break;
@@ -1171,7 +1176,7 @@ void printError(){
             }  
         }
         else{
-            switch (assembly[i].op){
+            switch (assembly[x].op){
                 case 1:
                     strcpy(str, "LIT");
                     break;
@@ -1204,6 +1209,7 @@ void printError(){
             }  
         }
 
-        printf("%d\t%s\t%d\t%d \n", i, str, assembly[i].l, assembly[i].m);
+        printf("%d\t%s\t%d\t%d \n", x, str, assembly[x].l, assembly[x].m);
+        x++;
     }
 }
