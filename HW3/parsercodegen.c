@@ -42,8 +42,8 @@ instruction assembly[MAX_SYMBOL_TABLE_SIZE];
 symbol table[MAX_SYMBOL_TABLE_SIZE]; 
 int codeIndex = 0;      // index of assembly
 int idx = 0;            // index of token array
-int table_index = 1;    // index of symbol table
-int tokenIdx = 0;       // current index of tokenArr
+int tableIndex = 1;    // index of symbol table
+int tokenIndex = 0;       // current index of tokenArr
 int lineTracker = 0;    // tracks the line numbers
 
 // token values
@@ -167,86 +167,86 @@ int main(int argc, char *argv[]) {
             // check if the identifier is a reserved word
             // const
             if(strcmp(buffer, reservedWords[0]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "const");
-                tokenArr[tokenIdx].token = constsym; 
+                strcpy(tokenArr[tokenIndex].type, "const");
+                tokenArr[tokenIndex].token = constsym; 
             }
 
             // var
             else if(strcmp(buffer, reservedWords[1]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "var");
-                tokenArr[tokenIdx].token = varsym; 
+                strcpy(tokenArr[tokenIndex].type, "var");
+                tokenArr[tokenIndex].token = varsym; 
             }
 
             // odd
             else if(strcmp(buffer, reservedWords[2]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "odd");
-                tokenArr[tokenIdx].token = oddsym; 
+                strcpy(tokenArr[tokenIndex].type, "odd");
+                tokenArr[tokenIndex].token = oddsym; 
             }
 
             // call
             // else if(strcmp(buffer, reservedWords[3]) == 0){
-            //     strcpy(tokenArr[tokenIdx].type, "call");
-            //     tokenArr[tokenIdx].token = callsym; 
+            //     strcpy(tokenArr[tokenIndex].type, "call");
+            //     tokenArr[tokenIndex].token = callsym; 
             // }
 
             // begin
             else if(strcmp(buffer, reservedWords[4]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "begin");
-                tokenArr[tokenIdx].token = beginsym; 
+                strcpy(tokenArr[tokenIndex].type, "begin");
+                tokenArr[tokenIndex].token = beginsym; 
             }
 
             // end
             else if(strcmp(buffer, reservedWords[5]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "end");
-                tokenArr[tokenIdx].token = endsym; 
+                strcpy(tokenArr[tokenIndex].type, "end");
+                tokenArr[tokenIndex].token = endsym; 
             }
 
             // if
             else if(strcmp(buffer, reservedWords[6]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "if");
-                tokenArr[tokenIdx].token = ifsym; 
+                strcpy(tokenArr[tokenIndex].type, "if");
+                tokenArr[tokenIndex].token = ifsym; 
             }
 
             // then
             else if(strcmp(buffer, reservedWords[7]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "then");
-                tokenArr[tokenIdx].token = thensym; 
+                strcpy(tokenArr[tokenIndex].type, "then");
+                tokenArr[tokenIndex].token = thensym; 
             }
 
             // xor
             else if(strcmp(buffer, reservedWords[8]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "xor");
-                tokenArr[tokenIdx].token = xorsym; 
+                strcpy(tokenArr[tokenIndex].type, "xor");
+                tokenArr[tokenIndex].token = xorsym; 
             }
 
             // else
             else if(strcmp(buffer, reservedWords[9]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "else");
-                tokenArr[tokenIdx].token = elsesym; 
+                strcpy(tokenArr[tokenIndex].type, "else");
+                tokenArr[tokenIndex].token = elsesym; 
             }
 
             // while
             else if(strcmp(buffer, reservedWords[10]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "while");
-                tokenArr[tokenIdx].token = whilesym; 
+                strcpy(tokenArr[tokenIndex].type, "while");
+                tokenArr[tokenIndex].token = whilesym; 
             }
 
             // do
             else if(strcmp(buffer, reservedWords[11]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "do");
-                tokenArr[tokenIdx].token = dosym; 
+                strcpy(tokenArr[tokenIndex].type, "do");
+                tokenArr[tokenIndex].token = dosym; 
             }
 
             // read
             else if(strcmp(buffer, reservedWords[12]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "read");
-                tokenArr[tokenIdx].token = readsym; 
+                strcpy(tokenArr[tokenIndex].type, "read");
+                tokenArr[tokenIndex].token = readsym; 
             }
 
             // write
             else if(strcmp(buffer, reservedWords[13]) == 0){
-                strcpy(tokenArr[tokenIdx].type, "write");
-                tokenArr[tokenIdx].token = writesym; 
+                strcpy(tokenArr[tokenIndex].type, "write");
+                tokenArr[tokenIndex].token = writesym; 
             }
 
             // Error handling
@@ -257,11 +257,11 @@ int main(int argc, char *argv[]) {
 
             // identifier 
             else{
-                strcpy(tokenArr[tokenIdx].type, buffer);
-                tokenArr[tokenIdx].token = identsym; 
+                strcpy(tokenArr[tokenIndex].type, buffer);
+                tokenArr[tokenIndex].token = identsym; 
             }
                      
-            tokenIdx++;
+            tokenIndex++;
             bufferIdx = 0;
             cur--;
         }
@@ -308,11 +308,11 @@ int main(int argc, char *argv[]) {
             buffer[bufferIdx] = '\0';
 
             // store info into array
-            strcpy(tokenArr[tokenIdx].type, "3");
-            tokenArr[tokenIdx].val = atoi(buffer);
-            tokenArr[tokenIdx].token = numbersym;
+            strcpy(tokenArr[tokenIndex].type, "3");
+            tokenArr[tokenIndex].val = atoi(buffer);
+            tokenArr[tokenIndex].token = numbersym;
 
-            tokenIdx++;
+            tokenIndex++;
             bufferIdx = 0;
             cur--; 
         }
@@ -323,105 +323,105 @@ int main(int argc, char *argv[]) {
 
             // +
             if(inputStr[cur] == '+'){
-                strcpy(tokenArr[tokenIdx].type, "+");
-                tokenArr[tokenIdx].token = plussym; 
+                strcpy(tokenArr[tokenIndex].type, "+");
+                tokenArr[tokenIndex].token = plussym; 
             }
 
             // -
             else if(inputStr[cur] == '-'){
-                strcpy(tokenArr[tokenIdx].type, "-");
-                tokenArr[tokenIdx].token = minussym; 
+                strcpy(tokenArr[tokenIndex].type, "-");
+                tokenArr[tokenIndex].token = minussym; 
             }
 
             // *
             else if(inputStr[cur] == '*'){
-                strcpy(tokenArr[tokenIdx].type, "*");
-                tokenArr[tokenIdx].token = multsym; 
+                strcpy(tokenArr[tokenIndex].type, "*");
+                tokenArr[tokenIndex].token = multsym; 
             }
 
             // /
             else if(inputStr[cur] == '/'){
-                strcpy(tokenArr[tokenIdx].type, "/");
-                tokenArr[tokenIdx].token = slashsym; 
+                strcpy(tokenArr[tokenIndex].type, "/");
+                tokenArr[tokenIndex].token = slashsym; 
             }
 
             // (
             else if(inputStr[cur] == '('){
-                strcpy(tokenArr[tokenIdx].type, "(");
-                tokenArr[tokenIdx].token = lparentsym; 
+                strcpy(tokenArr[tokenIndex].type, "(");
+                tokenArr[tokenIndex].token = lparentsym; 
             }
 
             // )
             else if(inputStr[cur] == ')'){
-                strcpy(tokenArr[tokenIdx].type, ")");
-                tokenArr[tokenIdx].token = rparentsym; 
+                strcpy(tokenArr[tokenIndex].type, ")");
+                tokenArr[tokenIndex].token = rparentsym; 
             }
 
             // =
             else if(inputStr[cur] == '='){
-                strcpy(tokenArr[tokenIdx].type, "=");
-                tokenArr[tokenIdx].token = eqsym; 
+                strcpy(tokenArr[tokenIndex].type, "=");
+                tokenArr[tokenIndex].token = eqsym; 
             }
 
             // ,
             else if(inputStr[cur] == ','){
-                strcpy(tokenArr[tokenIdx].type, ",");
-                tokenArr[tokenIdx].token = commasym; 
+                strcpy(tokenArr[tokenIndex].type, ",");
+                tokenArr[tokenIndex].token = commasym; 
             }
 
             // .
             else if(inputStr[cur] == '.'){
-                strcpy(tokenArr[tokenIdx].type, ".");
-                tokenArr[tokenIdx].token = periodsym; 
+                strcpy(tokenArr[tokenIndex].type, ".");
+                tokenArr[tokenIndex].token = periodsym; 
             }
 
             // <
             else if(inputStr[cur] == '<'){
                 if((cur + 1 < len) && inputStr[cur + 1] == '>'){
-                    strcpy(tokenArr[tokenIdx].type, "<>");
-                    tokenArr[tokenIdx].token = neqsym; 
+                    strcpy(tokenArr[tokenIndex].type, "<>");
+                    tokenArr[tokenIndex].token = neqsym; 
                     cur++;
                 }
                 else if((cur + 1 < len) && inputStr[cur + 1] == '='){
-                    strcpy(tokenArr[tokenIdx].type, "<=");
-                    tokenArr[tokenIdx].token = leqsym; 
+                    strcpy(tokenArr[tokenIndex].type, "<=");
+                    tokenArr[tokenIndex].token = leqsym; 
                     cur++;
                 }
                 else{
-                strcpy(tokenArr[tokenIdx].type, "<");
-                tokenArr[tokenIdx].token = lessym; 
+                strcpy(tokenArr[tokenIndex].type, "<");
+                tokenArr[tokenIndex].token = lessym; 
                 }
             }
 
             // >
             else if(inputStr[cur] == '>'){
                 if((cur + 1 < len) && inputStr[cur + 1] == '='){
-                    strcpy(tokenArr[tokenIdx].type, ">=");
-                    tokenArr[tokenIdx].token = geqsym; 
+                    strcpy(tokenArr[tokenIndex].type, ">=");
+                    tokenArr[tokenIndex].token = geqsym; 
                     cur++;
                 }
                 else{
-                strcpy(tokenArr[tokenIdx].type, ">");
-                tokenArr[tokenIdx].token = gtrsym; 
+                strcpy(tokenArr[tokenIndex].type, ">");
+                tokenArr[tokenIndex].token = gtrsym; 
                 }
             }
 
             // ;
             else if(inputStr[cur] == ';'){
-                strcpy(tokenArr[tokenIdx].type, ";");
-                tokenArr[tokenIdx].token = semicolonsym; 
+                strcpy(tokenArr[tokenIndex].type, ";");
+                tokenArr[tokenIndex].token = semicolonsym; 
             }
 
             // :
             else if(inputStr[cur] == ':'){
                 if(inputStr[cur + 1] == '='){
-                    strcpy(tokenArr[tokenIdx].type, ":=");
-                    tokenArr[tokenIdx].token = becomessym; 
+                    strcpy(tokenArr[tokenIndex].type, ":=");
+                    tokenArr[tokenIndex].token = becomessym; 
                     cur++; 
                 }
             }
 
-            tokenIdx++;
+            tokenIndex++;
             bufferIdx = 0;
 
         }
@@ -462,7 +462,7 @@ int main(int argc, char *argv[]) {
     fp = fopen("elf.txt", "w");
 
     // call program
-    program(tokenArr, tokenIdx, fp);
+    program(tokenArr, tokenIndex, fp);
     
     // print out assembly
     printOut(fp);
@@ -523,19 +523,20 @@ void constDeclaration(token tokenArray[], FILE *fp){
                 exit(1);
             }
             
+            if(checkTable(tokenArray[idx].type, 1) != -1){
+                printOut(fp);
+                printf("Error: undeclared constant \n");
+                exit(1);
+            }
+            
             // save ident name
             int len = strlen(tokenArray[idx].type);
             char indentName[len + 1];
             strcpy(indentName, tokenArray[idx].type);
 
-            // something weird here 
-            // if(checkTable(indentName, 1) == -1){
-            //     printf("Error: undeclared constant \n");
-            //     exit(1);
-            // }
-
             // get next token
             idx++;
+            
             if(tokenArray[idx].token !=eqsym){
                 printOut(fp);
                 printf("Error: constants must be assigned with = \n");
@@ -551,9 +552,10 @@ void constDeclaration(token tokenArray[], FILE *fp){
             }
 
             // check if already declared
-            if(table_index == 0 || checkTable(indentName,1) == -1) {
+            if(tableIndex == 0 || checkTable(indentName,1) == -1) {
                 addTable(1, indentName, tokenArray[idx].val, 0, 0);
-            }else{
+            }
+            else{
                 printOut(fp);
                 printf("Error: symbol name has already been declared \n");
                 exit(1);
@@ -589,7 +591,7 @@ int varDeclaration(token tokenArray[], FILE *fp){
             }
 
             // check if already declared
-            if(table_index == 0 || checkTable(tokenArray[idx].type,2) == -1){ 
+            if(tableIndex == 0 || checkTable(tokenArray[idx].type,2) == -1){ 
                 addTable(2, tokenArray[idx].type, 0, 0, numVars + 2);  
             }else{
                 printOut(fp);
@@ -619,7 +621,7 @@ void statement(token tokenArray[], FILE *fp){
         int symIdx = -1;
         
         // check table
-        for(int i = table_index - 1; i > 0; i--){
+        for(int i = tableIndex - 1; i > 0; i--){
             if(strcmp(tokenArray[idx].type, table[i].name) == 0){
                 if(table[i].kind == 1){
                     printOut(fp);
@@ -793,7 +795,7 @@ void statement(token tokenArray[], FILE *fp){
         int symIdx = -1;
 
         // check if already declared
-        for(int i = table_index - 1; i > 0; i--){
+        for(int i = tableIndex - 1; i > 0; i--){
             if(strcmp(tokenArray[idx].type, table[i].name) == 0){ 
                 symIdx = i;
                 break;
@@ -953,7 +955,7 @@ void factor(token tokenArray[], FILE *fp){
         int symIdx = -1;
 
         // check if not declared
-        for(int i = table_index - 1; i > 0 ; i--){
+        for(int i = tableIndex - 1; i > 0 ; i--){
             if(strcmp(tokenArray[idx].type, table[i].name) == 0){
                 symIdx = i;
             }
@@ -1021,21 +1023,21 @@ void emit(int op, int l, int m){
 
 // add values to symbol table
 void addTable(int kind ,char name[],int val, int level, int addr){
-    table[table_index].kind = kind;
-    strcpy(table[table_index].name, name);
-    table[table_index].val = val;
-    table[table_index].level = level;
-    table[table_index].addr = addr;
-    table[table_index++].mark = 0;  // no procedure implemention
+    table[tableIndex].kind = kind;
+    strcpy(table[tableIndex].name, name);
+    table[tableIndex].val = val;
+    table[tableIndex].level = level;
+    table[tableIndex].addr = addr;
+    table[tableIndex++].mark = 0;  // no procedure implemention
 }
 
 // return the index if found, else return -1
-int checkTable(char string[], int string_kind){
-    int index = table_index - 1;
+int checkTable(char string[], int stringKind){
+    int index = tableIndex - 1;
 
     // searching
     while(index != 0){
-        if((strcmp(table[index].name, string) == 0) && table[index].kind == string_kind){
+        if((strcmp(table[index].name, string) == 0) && table[index].kind == stringKind){
             return index;
         }
         index--;
@@ -1046,7 +1048,7 @@ int checkTable(char string[], int string_kind){
 // skip tokens until a “;” is found 
 // return the next token
 void errorRecovery(token tokenArray[]){
-    while(tokenArray[idx].token != semicolonsym && idx <= tokenIdx){
+    while(tokenArray[idx].token != semicolonsym && idx <= tokenIndex){
         idx++;
     }
 }
