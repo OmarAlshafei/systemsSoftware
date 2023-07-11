@@ -517,27 +517,29 @@ void constDeclaration(token tokenArray[], FILE *fp){
         do{
             // get next token
             idx++;
+            
             if(tokenArray[idx].token != identsym){
                 printOut(fp);
                 printf("Error: const, var, and read keywords must be followed by identifier\n");
                 exit(1);
             }
             
+            // check if symbol is already in the table
             if(checkTable(tokenArray[idx].type, 1) != -1){
                 printOut(fp);
-                printf("Error: undeclared constant \n");
+                printf("Error: symbol name has already been declared\n");
                 exit(1);
             }
             
             // save ident name
             int len = strlen(tokenArray[idx].type);
-            char indentName[len + 1];
-            strcpy(indentName, tokenArray[idx].type);
+            char identName[len + 1];
+            strcpy(identName, tokenArray[idx].type);
 
             // get next token
             idx++;
             
-            if(tokenArray[idx].token !=eqsym){
+            if(tokenArray[idx].token != eqsym){
                 printOut(fp);
                 printf("Error: constants must be assigned with = \n");
                 exit(1);
@@ -551,16 +553,9 @@ void constDeclaration(token tokenArray[], FILE *fp){
                 exit(1);
             }
 
-            // check if already declared
-            if(tableIndex == 0 || checkTable(indentName,1) == -1) {
-                addTable(1, indentName, tokenArray[idx].val, 0, 0);
-            }
-            else{
-                printOut(fp);
-                printf("Error: symbol name has already been declared \n");
-                exit(1);
-            }
-                
+            // add to symbol table
+            addTable(1, identName, tokenArray[idx].val, 0, 0);
+    
             // get the next token
             idx++;
 
@@ -669,10 +664,9 @@ void statement(token tokenArray[], FILE *fp){
             // call statement
             statement(tokenArray, fp);
 
-            // FIXME - bug here
             if(tokenArray[idx].token != endsym && tokenArray[idx].token != semicolonsym && tokenArray[idx].token != periodsym){
                 printOut(fp);
-                printf("Error: expected a semicolon HERE\n");
+                printf("Error: expected a semicolon\n");
                 errorRecovery(tokenArray);            
             }
         }while (tokenArray[idx].token == semicolonsym);
