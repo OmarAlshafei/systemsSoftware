@@ -1,0 +1,17 @@
+const a = 2, b = 3;
+var x, y, z;
+begin
+  /*program must end with period*/
+  x := a + 5;
+  y := a * (x - b);
+  z := (b + y * x) / 10;
+  read z
+  if y <> x then 
+    write y;
+  xor odd y + z then 
+    z := y; 
+  else
+    y := z;
+  while z < 3 do
+    z := z + 1;
+end.

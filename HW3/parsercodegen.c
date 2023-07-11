@@ -733,7 +733,7 @@ void statement(token tokenArray[], FILE *fp){
             idx++;
             
         if(tokenArray[idx].token != elsesym){
-            printf("Error: XOR must be follow then and follow else\n");
+            printf("Error: XOR must be followed by then and else\n");
             exit(1);
         }
         assembly[jpcIdx].m = (codeIndex + 1) * 3; // FIXME
