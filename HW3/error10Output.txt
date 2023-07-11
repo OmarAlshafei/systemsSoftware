@@ -1,6 +1,5 @@
 Assembly Code: 
 Line    OP      L       M
-Error: expected a semicolon HERE 
 0       JMP     0       3 
 1       INC     0       6 
 2       LIT     0       2 
@@ -48,4 +47,5 @@ Error: expected a semicolon HERE
 44      ADD     0       1 
 45      STO     0       5 
 46      JMP     0       114 
+Error: expected a semicolon HERE
 Error: begin must be followed by end

@@ -13,4 +13,4 @@ begin
   else
     y := z;
   while z < 3 do
-    z := z + 1
+    z := z + 1;

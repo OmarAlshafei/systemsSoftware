@@ -1,0 +1,4 @@
+var call, procedure;
+call :=5;
+procedure:=3;
+call := procedure + 3.
