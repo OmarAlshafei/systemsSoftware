@@ -1,6 +1,6 @@
 Assembly Code: 
 Line    OP      L       M
-0       JMP     0       3 
-1       INC     0       4 
+0       JMP     0       3
+
 Error: constant and variable declarations must be followed by a semicolon
-2       SYS     0       3
+1       SYS     0       3

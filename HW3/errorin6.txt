@@ -1,6 +1,5 @@
-const a = 2;
-var x;
-const b = 3
+const a = 2
+var x
 /*constant and variable declarations must be followed by a semicolon*/
 begin
   x := a + 5;

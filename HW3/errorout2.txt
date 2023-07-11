@@ -1,4 +1,5 @@
 Assembly Code: 
 Line    OP      L       M
-0       JMP     0       3 
+0       JMP     0       3
+
 Error: const, var, and read keywords must be followed by identifier

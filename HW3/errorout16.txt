@@ -22,6 +22,7 @@ Line    OP      L       M
 19      STO     0       5
 20      SYS     0       2
 21      STO     0       5
+
 Error: expected a semicolon
 22      LOD     0       4
 23      LOD     0       5

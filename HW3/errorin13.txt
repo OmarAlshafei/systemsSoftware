@@ -6,12 +6,6 @@ begin
   y := a * (x - b);
   z := (b + y * x) / 10;
   read z;
-  if y x then 
-    write y;
-  xor odd y + z then 
-    z := y; 
-  else
-    y := z;
-  while z < 3 do
-    z := z + 1;
+  if x
+  then 
 end.
