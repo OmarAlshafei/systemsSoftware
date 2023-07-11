@@ -668,12 +668,11 @@ void statement(token tokenArray[], FILE *fp){
             statement(tokenArray, fp);
 
             // FIXME - bug here
-            if(tokenArray[idx].token != semicolonsym && tokenArray[idx].token != endsym){
+            if(tokenArray[idx].token != endsym && tokenArray[idx].token != semicolonsym && tokenArray[idx].token != periodsym){
                 printOut(fp);
                 printf("Error: expected a semicolon HERE\n");
                 errorRecovery(tokenArray);            
             }
-
         }while (tokenArray[idx].token == semicolonsym);
         
         if(tokenArray[idx].token != endsym){
