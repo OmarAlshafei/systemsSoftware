@@ -67,7 +67,7 @@ int codeIndex = 0;                          //current index of code stack
 int lineTracker = 0;
 int errorflag = 0;                          //used for printing error when from code start to error then keep printing if there is no error after
 int lexLevel = 0;                                  //Max lexicographical level reached.
-
+int mainIdx = 0; 
 
 void procDestination(token tokenArray[], FILE* fp);
 void printOut(FILE* fp);
@@ -467,9 +467,10 @@ int main(int argc, char *argv[]) {
 
     // init assemblyCode
     for(int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++){
-        assemblyCode[i].op = 0;
-        assemblyCode[i].l = 0;
-        assemblyCode[i].m = 0;
+            assemblyCode[i].op = 0;
+            assemblyCode[i].l = 0;
+            assemblyCode[i].m = 0;
+        
     }
 
     // print output header
@@ -492,12 +493,13 @@ int main(int argc, char *argv[]) {
     free(inputStr);
     return 0;
 
+    
+
     // end of main
 }
 
 //return idx if found, otherwise return -1
 int checkTable(char string[], int string_kind){
-
     int symbol_index = tableIndex - 1;
 
     //linear search through the symbol table looking at name
@@ -525,9 +527,9 @@ void addTable(int kind_of_token ,char name_of_token[],int val_of_token, int leve
 
 void program(token tokenArray[], FILE* fp){
     
-    emit(7,0,0);
 
     block(tokenArray, fp);
+
     if(strcmp(tokenArray[idx].type, ".") != 0){
         printOut(fp);
         printf("\nError: program must end with period \n");   
@@ -536,20 +538,17 @@ void program(token tokenArray[], FILE* fp){
 
     //emit end of program: SYS 03
     emit(9,0,3);
-    //printOut();
 }
 
 void block(token tokenArray[], FILE* fp){
-    int dx, tx0, cx0;
     int numVars = 0;
-    dx = 3;
-
-    tx0 = tableIndex;
-
-    //need explanation
-    //symbolTable[0].addr = codeIdex:
-    symbolTable[tableIndex].addr = codeIndex + 1;
+    int procStarts = codeIndex;
     
+    if(errorflag == 0){
+        errorflag = 1;
+        emit(7,0,0);
+    }
+
     do {
         if (tokenArray[idx].token == constsym) {
             constDeclaration(tokenArray, fp);
@@ -560,18 +559,17 @@ void block(token tokenArray[], FILE* fp){
         }
 
         else if (tokenArray[idx].token == procsym){
+            //jmp to where this proc starts
             procDestination(tokenArray, fp);
             lexLevel--;
         }
         idx++;
     }while ((tokenArray[idx].token == constsym)||(tokenArray[idx].token == varsym)||(tokenArray[idx].token == procsym));
     
-    symbolTable[tx0].addr = codeIndex;                                // the space for address for the above jmp is now occupied by the new code idx
-    cx0 = codeIndex;                                                   // inc 0,dx is generated. At run time, the space of dx is secured
-    assemblyCode[codeIndex].m = codeIndex * 3;                  // The tentative jump address is fixed up
-    emit(6,0,numVars + dx);
+    
+    assemblyCode[procStarts].m = (codeIndex) * 3;                  // The tentative jump address is fixed up
+    emit(6,0,numVars + 3);
     statement(tokenArray, fp);
-    emit(2,0,0);
 }
 
 void constDeclaration(token tokenArray[], FILE* fp){
@@ -638,6 +636,12 @@ void constDeclaration(token tokenArray[], FILE* fp){
 //FIXED
 //return numbers of variables
 int varDeclaration(token tokenArray[], FILE* fp){
+    /*Debug*/
+    // if(strcpy(tokenArray[idx].type,"ans1") == 0){
+    //     printf("\nAns1 does go to var declaration");
+    // }
+    // printf("\nVar declaration is %s\n",tokenArray[idx+1].type);
+
     int numVars = 0;
     if(tokenArray[idx].token == varsym){
         do{
@@ -654,12 +658,22 @@ int varDeclaration(token tokenArray[], FILE* fp){
 
             //if table is empty or it is not in the list, add it
             //otherwise it is error
-            if(tableIndex == 0 || checkTable(tokenArray[idx].type,2) == 0){ 
+            int result = 0;
+            result = checkTable(tokenArray[idx].type,2);
+            if(tableIndex == 0 || result == 0){ 
+                /*Debug*/
+                // printf("\nVar is added to the table is %s\n",tokenArray[idx].type);
+
                 addTable(2, tokenArray[idx].type, 0,lexLevel,numVars + 2);  
+
+                /*Debug*/
+                // printf("\nAddress of the var is %d\n",symbolTable[tableIndex-1].addr);
             }else{
-                printOut(fp);
-                printf("Symbol name has already been declared");
-                exit(1);
+                if(symbolTable[result].level == lexLevel ){
+                    printOut(fp);
+                    printf("Symbol name has already been declared");
+                    exit(1);
+                }
             }
 
             //get next token
@@ -711,6 +725,11 @@ void procDestination(token tokenArray[], FILE* fp){
             printf("\nError: variable declarations must be followed by a semicolon");
             errorRecovery(tokenArray);
         }
+
+        //return from this function
+        emit(2,0,0);
+
+
     }
 }
 
@@ -757,6 +776,11 @@ void statement(token tokenArray[], FILE* fp){
         idx++;
 
         expression(tokenArray, fp);
+
+
+        /*Debug*/
+        // printf("\nThe current char is %s\n", symbolTable[symIdx].name);
+        //  printf("\nThe current address char is %d\n", symbolTable[symIdx].addr);
 
         //emit STO(M = table[symIdx].addr)
         emit(4,lexLevel - symbolTable[symIdx].level, symbolTable[symIdx].addr);
