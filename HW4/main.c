@@ -541,21 +541,19 @@ void program(token tokenArray[], FILE* fp){
 }
 
 void block(token tokenArray[], FILE* fp){
-    int numVars = 0;
+    int numVars = 3;
     int procStarts = codeIndex;
     
-    if(errorflag == 0){
-        errorflag = 1;
-        emit(7,0,0);
-    }
 
+        emit(7,0,0);
+    
     do {
         if (tokenArray[idx].token == constsym) {
             constDeclaration(tokenArray, fp);
         }
 
         else if (tokenArray[idx].token == varsym) {
-            numVars = varDeclaration(tokenArray, fp);
+            numVars += varDeclaration(tokenArray, fp);
         }
 
         else if (tokenArray[idx].token == procsym){
@@ -568,7 +566,7 @@ void block(token tokenArray[], FILE* fp){
     
     
     assemblyCode[procStarts].m = (codeIndex) * 3;                  // The tentative jump address is fixed up
-    emit(6,0,numVars + 3);
+    emit(6,0,numVars);
     statement(tokenArray, fp);
 }
 
@@ -606,9 +604,10 @@ void constDeclaration(token tokenArray[], FILE* fp){
                 printf("\nError: constants must be assigned with an integer value ");
                 exit(1);
             }
-
+            //get next token
+            idx++;
             if(tableIndex == 0 || checkTable(indentName,1) == 0) {
-                addTable(1,indentName,tokenArray[idx].val,lexLevel,2);
+                addTable(1,indentName,tokenArray[idx].val,lexLevel,0);
             }else{
                 printOut(fp);
                 printf("\nError: symbol name has already been declared");
@@ -625,7 +624,6 @@ void constDeclaration(token tokenArray[], FILE* fp){
             printf("\nError: Constant declaration must be followed by a semicolon ");
 
             errorRecovery(tokenArray);
-            idx++;
         }
 
     }
@@ -665,7 +663,7 @@ int varDeclaration(token tokenArray[], FILE* fp){
                 // printf("\nVar is added to the table is %s\n",tokenArray[idx].type);
 
                 addTable(2, tokenArray[idx].type, 0,lexLevel,numVars + 2);  
-
+            
                 /*Debug*/
                 // printf("\nAddress of the var is %d\n",symbolTable[tableIndex-1].addr);
             }else{
@@ -678,7 +676,6 @@ int varDeclaration(token tokenArray[], FILE* fp){
 
             //get next token
             idx++;
-
         }while(tokenArray[idx].token == commasym);
 
         if(tokenArray[idx].token != semicolonsym){
@@ -689,13 +686,12 @@ int varDeclaration(token tokenArray[], FILE* fp){
             errorRecovery(tokenArray);
 
         }
-
     }
     return numVars;
 }
 
 void procDestination(token tokenArray[], FILE* fp){
-    while(tokenArray[idx].token == procsym) {
+    do{
         //get the next token 
         idx++;
 
@@ -730,7 +726,7 @@ void procDestination(token tokenArray[], FILE* fp){
         emit(2,0,0);
 
 
-    }
+    }while(tokenArray[idx].token == procsym);
 }
 
 
@@ -865,7 +861,7 @@ void statement(token tokenArray[], FILE* fp){
         //emit JMP (M = loop_idx * 3), OPR = 7
         emit(7,0,loop_idx * 3);
         //update m for JPC
-        assemblyCode[jpc_idx].m = codeIndex * 3 ;
+        assemblyCode[jpc_idx].m = codeIndex * 3;
         return;
     }
     else if(tokenArray[idx].token == readsym){
@@ -975,9 +971,9 @@ void statement(token tokenArray[], FILE* fp){
         idx++;
 
         //update m
-        assemblyCode[jpcIdx].m = codeIndex;
+        assemblyCode[jpcIdx].m = codeIndex * 3;
         statement(tokenArray, fp);
-        assemblyCode[jmpIdx].m = codeIndex;
+        assemblyCode[jmpIdx].m = codeIndex * 3;
 
     }
     else if(tokenArray[idx].token == callsym){
@@ -1005,8 +1001,7 @@ void statement(token tokenArray[], FILE* fp){
             printf("\nError: call must be followed by a prodecure identifier\n");
             exit(1);
         }
-        emit(5, lexLevel - symbolTable[symIdx].level, symbolTable[symIdx].addr + 3);
-        
+        emit(5, lexLevel - symbolTable[symIdx].level, symbolTable[symIdx].addr);
         // get next token
         idx++;
     }
@@ -1110,14 +1105,14 @@ void term(token tokenArray[], FILE* fp){
             idx++;
 
             factor(tokenArray, fp);
-            emit(2,0,3);                //emit MUL, OP = 2, MUL = 3
+            emit(2,lexLevel,3);                //emit MUL, OP = 2, MUL = 3
         }
         else{
             //get next token
             idx++;
             
             factor(tokenArray, fp);
-            emit(2,0,4);                //emit DIV, OP = 2, DIV = 4
+            emit(2,lexLevel,4);                //emit DIV, OP = 2, DIV = 4
         }
         
     }
@@ -1277,7 +1272,7 @@ void printOut(FILE* fp){
         }
 
         printf("%d\t%s\t%d\t%d\n", lineTracker, str, assemblyCode[lineTracker].l, assemblyCode[lineTracker].m);
-        fprintf(fp, "%d\t%d\t%d\n", assemblyCode[lineTracker].op, assemblyCode[lineTracker].l, assemblyCode[lineTracker].m);
+        fprintf(fp, "%d %d %d\n", assemblyCode[lineTracker].op, assemblyCode[lineTracker].l, assemblyCode[lineTracker].m);
 
         lineTracker++;
     }
