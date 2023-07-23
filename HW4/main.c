@@ -529,14 +529,17 @@ int main(int argc, char *argv[]) {
     free(inputStr);
 
     //----------------------------------------- HW1 ------------------------------------
-    fp = fopen("elf.txt", "r+");
+    fp = fopen("elf.txt", "r");
     // initalize array    
     for (int i = 0; i < ARRAY_SIZE; i++)
         pas[i] = 0;
     // scan input into array and calculate BP
     int ogBP = 0;
-    while (fscanf(fp,"%d", &(pas[ogBP])) != EOF)
+
+    while (fscanf(fp, "%d", &(pas[ogBP])) != EOF){
         ogBP += 1;
+    }
+
     // define base pointer, stack pointer, and program counter
     int BP = ogBP;
     int SP = ogBP - 1;
@@ -554,7 +557,9 @@ int main(int argc, char *argv[]) {
 
     
     // while loop used to carry out the PM/0 instruction cycle
-    for(int i = 0; i < ogBP; i++){
+    for(int i = 0; i <= ogBP/3; i++){
+        if(halt != 1)
+            break;
         // fetch cycle:
         int OP = pas[PC];
         int L = pas[PC + 1];
@@ -639,6 +644,11 @@ int main(int argc, char *argv[]) {
                         pas[SP-1] = pas[SP-1] >= pas[SP];
                         SP--;
                         strcpy(opName, "GEQ");
+                        break;
+                    case 11:
+                        pas[SP] = pas[SP];
+                        SP--;
+                        strcpy(opName, "ODD");
                         break;
                     // default case
                     default :
