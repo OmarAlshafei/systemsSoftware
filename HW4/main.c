@@ -529,7 +529,7 @@ int main(int argc, char *argv[]) {
     free(inputStr);
 
     //----------------------------------------- HW1 ------------------------------------
-    fp = fopen("elf.txt", "r");
+    fp = fopen("elf.txt", "r+");
     // initalize array    
     for (int i = 0; i < ARRAY_SIZE; i++)
         pas[i] = 0;
@@ -551,8 +551,10 @@ int main(int argc, char *argv[]) {
     int barCount = 0;
     int bar[ogBP/3];
     int halt = 1;
+
+    
     // while loop used to carry out the PM/0 instruction cycle
-    while (halt != 0){
+    for(int i = 0; i < ogBP; i++){
         // fetch cycle:
         int OP = pas[PC];
         int L = pas[PC + 1];
@@ -723,7 +725,6 @@ int main(int argc, char *argv[]) {
     }    
     // close file pointer
     fclose(fp);
-    
     return 0;
 }
 
@@ -777,10 +778,10 @@ void markTable(int current_LexLevel) {
 }
 
 
-int symboltablecheck(char *targetName){
+int symboltablecheck(char *name){
     //moves backward thru symbol table
     for (int index = tableIndex- 1; index > 0; index--){
-        if(strcmp(symbolTable[index].name, targetName) == 0 && symbolTable[index].mark == 0){
+        if(strcmp(symbolTable[index].name, name) == 0 && symbolTable[index].mark == 0){
             return index;
         }
     }
