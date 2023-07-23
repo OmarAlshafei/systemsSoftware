@@ -12,7 +12,33 @@
 #define IDENT_MAX 11         
 #define NUM_MAX 5
 #define MAX_SYMBOL_TABLE_SIZE 500
-#define CODE_SIZE 1000             
+#define CODE_SIZE 1000     
+#define ARRAY_SIZE 500 //stack maximum size
+
+
+
+#define LIT  1         // Literal
+#define OPR  2         // Operation
+#define LOD  3         // Load
+#define STO  4         // Store
+#define CALL 5         // Call
+#define INC  6         // Increment
+#define JMP  7         // Jump
+#define JPC  8         // Jump Condition
+#define SYS  9         // Start Input Output
+
+#define RTN  0         // Return
+#define ADD  1         // Add
+#define SUB  2         // Subtract
+#define MUL  3         // Multiply
+#define DIV  4         // Divide
+#define EQL  5         // Equal
+#define NEQ  6         // Not Equal
+#define LSS  7         // Less Than
+#define LEQ  8         // Less Than or Equal 
+#define GTR  9         // Greater Than 
+#define GEQ  10        // Greater Than or Equal
+#define ODD  11        // ODD
 
 //SYS
 #define WRITE 1 
@@ -57,19 +83,26 @@ typedef struct{
 }instruction;
 
 symbol symbolTable[MAX_SYMBOL_TABLE_SIZE]; 
-instruction assemblyCode[CODE_SIZE];           //stack that stores all code
-int tableIndex = 1;                        //current index of symbol table
+instruction assemblyCode[CODE_SIZE];        //stack that stores all code
+int tableIndex = 1;                         //current index of symbol table
 int idx = 0;                                //current index of token array
-int tokenIndex = 0;       // current index of tokenArr
+int tokenIndex = 0;                         // current index of tokenArr
 int line = 0;                               //current line
 int flag = 0;                               //used for printing assemblyCode when line = 0
 int codeIndex = 0;                          //current index of code stack
 int lineTracker = 0;
 int errorflag = 0;                          //used for printing error when from code start to error then keep printing if there is no error after
-int lexLevel = 0;                                  //Max lexicographical level reached.
-int mainIdx = 0; 
+int lexLevel = 0;                           //Max lexicographical level reached.
 
-void procDestination(token tokenArray[], FILE* fp);
+/*-----------------HW 1------------------------ */
+int pas[ARRAY_SIZE];
+
+int base(int BP, int L);
+/*--------------------------------------------------*/
+
+
+
+void procDeclaration(token tokenArray[], FILE* fp);
 void printOut(FILE* fp);
 int isSpecialSymbol(char ch);
 int checkTable(char string[], int string_kind);
@@ -85,7 +118,11 @@ void factor(token tokenArray[], FILE* fp);
 void addTable(int, char*, int, int, int);
 void emit(int op, int l, int m);
 void errorRecovery(token tokenArray[]);
-void procDeclaration(token tokenArray[], int size, FILE* fp);
+void markTable(int current_LexLevel);
+void printTable(symbol table[], int tableSize);
+int symboltablecheck(char *targetName);
+int seekSymbol(char *targetName, int target_LexLevel);
+
 
 int isSpecialSymbol(char c){
     if(c == '+' || c == '-' || c == '*' || c == '/') return 1; 
@@ -97,7 +134,7 @@ int isSpecialSymbol(char c){
     return 0;
 }
 
-// driver function 
+
 int main(int argc, char *argv[]) {
 
     FILE *fp;
@@ -467,10 +504,9 @@ int main(int argc, char *argv[]) {
 
     // init assemblyCode
     for(int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++){
-            assemblyCode[i].op = 0;
-            assemblyCode[i].l = 0;
-            assemblyCode[i].m = 0;
-        
+        assemblyCode[i].op = 0;
+        assemblyCode[i].l = 0;
+        assemblyCode[i].m = 0;
     }
 
     // print output header
@@ -480,26 +516,230 @@ int main(int argc, char *argv[]) {
     // print output header
     printf("Assembly Code: \n");
     printf("Line\tOP\tL\tM\n");
+
     // call program
     program(tokenArr, fp);
-    
        
     // print out assemblyCode
-    
     printOut(fp);
     if(flag == 0)
         printf("\nNo errors, program is syntactically correct\n");
     fclose(fp);
     free(inputStr);
-    return 0;
 
+    //----------------------------------------- HW1 ------------------------------------
+    //pass assembly into a PAS
+    //passIntoPAS();
+
+    fp = fopen("elf.txt", "r");
+    // initalize array    
+    for (int i = 0; i < ARRAY_SIZE; i++)
+        pas[i] = 0;
+    // scan input into array and calculate BP
+    int ogBP = 0;
+    while (fscanf(fp,"%d", &(pas[ogBP])) != EOF)
+        ogBP += 1;
+    // define base pointer, stack pointer, and program counter
+    int BP = ogBP;
+    int SP = ogBP - 1;
+    int PC = 0;  
+    // print initial values
+    printf("\t\t\tPC\tBP\tSP\tstack\n");
+    printf("Initial values:\t\t%d\t%d\t%d\n\n", PC, BP, SP);
     
+    // define char array to store OP name
+    char opName[4];
+    // define bar array and bar count variable to track bar location and quantity
+    int barCount = 0;
+    int bar[ogBP/3];
+    int halt = 1;
+    // while loop used to carry out the PM/0 instruction cycle
+    while (halt != 0){
+        // fetch cycle:
+        int OP = pas[PC];
+        int L = pas[PC + 1];
+        int M = pas[PC + 2];
+        PC += 3;
+        
+        // execute cycle:
+        switch(OP) {
+            // literal instruction
+            case 1:
+                SP++;
+                pas[SP] = M;
+                strcpy(opName, "LIT");
+                break;
+            // operation instruction
+            case 2:
+                switch(M){
+                    // return
+                    case 0:
+                        SP = BP - 1;
+                        BP = pas[SP + 2];
+                        PC = pas[SP + 3];
+                        bar[--barCount] = 0;
+                        strcpy(opName, "RTN");
+                        break;
+                    // add operation
+                    case 1:
+                        pas[SP-1] = pas[SP-1] + pas[SP];
+                        SP--;
+                        strcpy(opName, "ADD");
+                        break;
+                    //subtract operation
+                    case 2:
+                        pas[SP-1] = pas[SP-1] - pas[SP];
+                        SP--;
+                        strcpy(opName, "SUB");
+                        break;
+                    // multiply operation
+                    case 3:
+                        pas[SP-1] = pas[SP-1] * pas[SP];
+                        SP--;
+                        strcpy(opName, "MUL");
+                        break;
+                    // divide operation
+                    case 4:
+                        pas[SP-1] = pas[SP-1] / pas[SP];
+                        SP--;
+                        strcpy(opName, "DIV");
+                        break;
+                    // equal operation
+                    case 5:
+                        pas[SP-1] = pas[SP-1] == pas[SP];
+                        SP--;
+                        strcpy(opName, "EQL");
+                        break;
+                    // not equal operation
+                    case 6:
+                        pas[SP-1] = pas[SP-1] != pas[SP];
+                        SP--;
+                        strcpy(opName, "NEQ");
+                        break;
+                    // less than operation
+                    case 7:
+                        pas[SP-1] = pas[SP-1] < pas[SP];
+                        SP--;
+                        strcpy(opName, "LSS");
+                        break;
+                    // less than or equal to operation
+                    case 8:
+                        pas[SP-1] = pas[SP-1] <= pas[SP];
+                        SP--;
+                        strcpy(opName, "LEQ");
+                        break;
+                    // greater than operation
+                    case 9:
+                        pas[SP-1] = pas[SP-1] > pas[SP];
+                        SP--;
+                        strcpy(opName, "GTR");
+                        break;
+                    // greater than or equal to operation
+                    case 10:
+                        pas[SP-1] = pas[SP-1] >= pas[SP];
+                        SP--;
+                        strcpy(opName, "GEQ");
+                        break;
+                    // default case
+                    default :
+                        printf("ERROR");
+                }
+                break;
+            // load instruction
+            case 3:
+                SP++;
+                pas[SP] = pas[base(BP, L) + M];
+                strcpy(opName, "LOD");
+                break;
+            // store instruction
+            case 4:
+                pas[base(BP, L) + M] = pas[SP];
+                SP--;
+                strcpy(opName, "STO");
+                break;
+            // call instruction
+            case 5:
+                pas[SP + 1] = base(BP, L);
+                pas[SP + 2] = BP;
+                pas[SP + 3] = PC;
+                BP = SP + 1;
+                PC = M;
+                bar[barCount++] = BP;
+                strcpy(opName, "CAL");
+                break;
+            // increment intructrion
+            case 6:
+                SP += M;
+                strcpy(opName, "INC");
+                break;
+            // jump instruction
+            case 7:
+                PC = M;
+                strcpy(opName, "JMP");
+                break;
+            // conditional jump instruction
+            case 8:
+                if (pas[SP] == 0){
+                PC = M;
+                }
+                SP--;
+                strcpy(opName, "JPC");
+                break;
+            // SYS intructions
+            case 9:
+                // write to the screen
+                if (M == 1){
+                    printf("Output result is: %d\n", pas[SP]);
+                    SP--;
+                }
+                // read in input
+                if (M == 2){
+                    SP++;
+                    printf("Please Enter an Integer: ");
+                    scanf("%d", &pas[SP]);
+                }
+                // set halt to zero and end program
+                if (M == 3){
+                    halt = 0;
+                }
+                strcpy(opName, "SYS");
+                break;
+            // default case
+            default:
+                printf("ERROR");
+        }
+        // print operation name, L, M, program counter, base pointer, and stack pointer
+        printf("    %s  %d\t%d\t%d\t%d\t%d\t", opName, L, M, PC, BP, SP);
+            // for loop used to traverse through activation record
+        for (int i = ogBP; i <= SP; i++){
+            // inner loop to locate bar
+            for (int j = 0; j <= barCount; j++){
+                // print bar if array value matches index i
+                if (bar[j] == i)
+                    printf("| ");
+            }
+            // print array value at index i
+            printf("%d ", pas[i]);
+        }
+        printf("\n");
+    }    
+    // close file pointer
+    fclose(fp);
+    return 0;
+}
 
-    // end of main
+int base(int BP, int L) {
+    int arb = BP; // arb = activation record base
+    while ( L > 0) { //find base L levels down
+        arb = pas[arb];
+        L--;
+    }
+    return arb;
 }
 
 //return idx if found, otherwise return -1
 int checkTable(char string[], int string_kind){
+
     int symbol_index = tableIndex - 1;
 
     //linear search through the symbol table looking at name
@@ -513,6 +753,7 @@ int checkTable(char string[], int string_kind){
     return 0;
 }
 
+
 void addTable(int kind_of_token ,char name_of_token[],int val_of_token, int level_of_token, int addr_of_token){
     
     symbolTable[tableIndex].kind = kind_of_token;
@@ -525,6 +766,7 @@ void addTable(int kind_of_token ,char name_of_token[],int val_of_token, int leve
     tableIndex++;
 }
 
+
 void program(token tokenArray[], FILE* fp){
     
 
@@ -532,33 +774,38 @@ void program(token tokenArray[], FILE* fp){
 
     if(strcmp(tokenArray[idx].type, ".") != 0){
         printOut(fp);
-        printf("\nError: program must end with period \n");   
+        printf("\nError: program must end with period \n");
+        flag = -1;
         exit(1);
     } 
+
+    //mark off all global variables from main 
+    markTable(lexLevel);
 
     //emit end of program: SYS 03
     emit(9,0,3);
 }
 
-void block(token tokenArray[], FILE* fp){
-    int numVars = 3;
-    int procStarts = codeIndex;
-    
 
-        emit(7,0,0);
-    
+void block(token tokenArray[], FILE* fp){
+    int numVars = 0;
+    int procStarts = codeIndex;
+       
+    emit(7,0,0); 
+
+
     do {
         if (tokenArray[idx].token == constsym) {
             constDeclaration(tokenArray, fp);
         }
 
         else if (tokenArray[idx].token == varsym) {
-            numVars += varDeclaration(tokenArray, fp);
+            numVars = varDeclaration(tokenArray, fp);
         }
 
         else if (tokenArray[idx].token == procsym){
             //jmp to where this proc starts
-            procDestination(tokenArray, fp);
+            procDeclaration(tokenArray, fp);
             lexLevel--;
         }
         idx++;
@@ -566,9 +813,10 @@ void block(token tokenArray[], FILE* fp){
     
     
     assemblyCode[procStarts].m = (codeIndex) * 3;                  // The tentative jump address is fixed up
-    emit(6,0,numVars);
+    emit(6,0,numVars + 3);
     statement(tokenArray, fp);
 }
+
 
 void constDeclaration(token tokenArray[], FILE* fp){
     if(tokenArray[idx].token == constsym){
@@ -579,6 +827,7 @@ void constDeclaration(token tokenArray[], FILE* fp){
             if(tokenArray[idx].token != identsym){
                 printOut(fp);
                 printf("\nError: const keywords must be followed by identifiers ");
+                flag = -1;
                 exit(1);
             }
             
@@ -593,6 +842,7 @@ void constDeclaration(token tokenArray[], FILE* fp){
             if(tokenArray[idx].token != eqsym){
                 printOut(fp);
                 printf("\nError: constants must be assigned with = ");
+                flag = -1;
                 exit(1);
             }
 
@@ -602,17 +852,26 @@ void constDeclaration(token tokenArray[], FILE* fp){
             if(tokenArray[idx].token != numbersym){
                 printOut(fp);
                 printf("\nError: constants must be assigned with an integer value ");
+                flag = -1;
                 exit(1);
             }
-            //get next token
-            idx++;
-            if(tableIndex == 0 || checkTable(indentName,1) == 0) {
-                addTable(1,indentName,tokenArray[idx].val,lexLevel,0);
+
+            //if table is empty or it is not in the list, add it
+            //otherwise check if it has current lexical level
+            int result = 0;
+            result = checkTable(tokenArray[idx].type,2);
+            if(tableIndex == 0 || result == 0){ 
+                addTable(1,indentName,tokenArray[idx].val,lexLevel,2);  
             }else{
-                printOut(fp);
-                printf("\nError: symbol name has already been declared");
-                exit(1);
+                if(symbolTable[result].level == lexLevel ){
+                    printOut(fp);
+                    printf("Symbol name has already been declared");
+                    exit(1);
+                }else{
+                    addTable(1,indentName,tokenArray[idx].val,lexLevel,2);
+                }
             }
+           
                 
             //get the next token
             idx++;
@@ -622,8 +881,9 @@ void constDeclaration(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != semicolonsym){
             printOut(fp);
             printf("\nError: Constant declaration must be followed by a semicolon ");
-
+            flag = -1;
             errorRecovery(tokenArray);
+            idx++;
         }
 
     }
@@ -631,16 +891,10 @@ void constDeclaration(token tokenArray[], FILE* fp){
 }
 
 
-//FIXED
 //return numbers of variables
 int varDeclaration(token tokenArray[], FILE* fp){
-    /*Debug*/
-    // if(strcpy(tokenArray[idx].type,"ans1") == 0){
-    //     printf("\nAns1 does go to var declaration");
-    // }
-    // printf("\nVar declaration is %s\n",tokenArray[idx+1].type);
-
     int numVars = 0;
+    
     if(tokenArray[idx].token == varsym){
         do{
             numVars++;
@@ -651,6 +905,7 @@ int varDeclaration(token tokenArray[], FILE* fp){
             if(tokenArray[idx].token != identsym){
                 printOut(fp);
                 printf("\nError: var declaration must be followed by identifier");
+                flag = -1;
                 exit(1);
             }
 
@@ -663,7 +918,7 @@ int varDeclaration(token tokenArray[], FILE* fp){
                 // printf("\nVar is added to the table is %s\n",tokenArray[idx].type);
 
                 addTable(2, tokenArray[idx].type, 0,lexLevel,numVars + 2);  
-            
+
                 /*Debug*/
                 // printf("\nAddress of the var is %d\n",symbolTable[tableIndex-1].addr);
             }else{
@@ -671,45 +926,51 @@ int varDeclaration(token tokenArray[], FILE* fp){
                     printOut(fp);
                     printf("Symbol name has already been declared");
                     exit(1);
+                }else{
+                    addTable(2, tokenArray[idx].type, 0,lexLevel,numVars + 2); 
                 }
             }
 
             //get next token
             idx++;
+
         }while(tokenArray[idx].token == commasym);
 
         if(tokenArray[idx].token != semicolonsym){
             printOut(fp);
             printf("\nError: variable declarations must be followed by a semicolon");
-
-
+            flag = -1;
             errorRecovery(tokenArray);
 
         }
+
     }
+    
     return numVars;
 }
 
-void procDestination(token tokenArray[], FILE* fp){
-    do{
+
+void procDeclaration(token tokenArray[], FILE* fp){
+    while(tokenArray[idx].token == procsym) {
         //get the next token 
         idx++;
 
         if(tokenArray[idx].token == identsym){
             //enter(procedure,&tx,&dx,lev); 
-            addTable(3, tokenArray[idx].type, 0, lexLevel, 0);
+            addTable(3, tokenArray[idx].type, 0, lexLevel, codeIndex * 3);
 
             //get the next token 
             idx++;
         } 
         else{
-            printf("Error: Procedure must be followed by an identifier");  
+            printf("Error: Procedure must be followed by an identifier");
             exit(1);
         } 
 
         if(tokenArray[idx].token != semicolonsym){
             printOut(fp);
             printf("\nError: variable declarations must be followed by a semicolon");
+            flag = -1;
             errorRecovery(tokenArray);
         }
         // Go to a block one lexLevel higher
@@ -719,14 +980,18 @@ void procDestination(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != semicolonsym){
             printOut(fp);
             printf("\nError: variable declarations must be followed by a semicolon");
+            flag = -1;
             errorRecovery(tokenArray);
         }
+
+        //mark off(clean) variables in scope of procedures
+        markTable(lexLevel);
 
         //return from this function
         emit(2,0,0);
 
 
-    }while(tokenArray[idx].token == procsym);
+    }
 }
 
 
@@ -734,29 +999,20 @@ void statement(token tokenArray[], FILE* fp){
     if(tokenArray[idx].token == identsym){
         int symIdx = 0;
         
-        //check if identifier has been declared
-        for(int i = tableIndex - 1; i > 0; i--){
-            if(strcmp(tokenArray[idx].type, symbolTable[i].name) == 0){  //found
-                if(symbolTable[i].kind == 1){ //constant
-                    printOut(fp);
-                    printf("\nError: Identifier cannot be a constant in statement");
-                    exit(1);
-                }
-                else if(symbolTable[i].kind == 2){ //var
-                    symIdx = i;
-                }
-            }
-        }
-        
+         //check if identifier has been declared
+        symIdx = symboltablecheck(tokenArray[idx].type);
+
         if(symIdx == 0){
             printOut(fp);
             printf("\nError: Undeclared identifier");
+            flag = -1;
             exit(1);
         }
 
         if(symbolTable[symIdx].kind != 2){
             printOut(fp);
             printf("\nError: Only variable values may be altered");
+            flag = -1;
             exit(1); 
         }
 
@@ -766,6 +1022,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != becomessym){
             printOut(fp);
             printf("\nError: Assignment statements must use :=");
+            flag = -1;
             exit(1);
         }
         //get the next token
@@ -792,8 +1049,9 @@ void statement(token tokenArray[], FILE* fp){
             statement(tokenArray, fp);
             
             if(tokenArray[idx].token != endsym && tokenArray[idx].token != semicolonsym && tokenArray[idx].token != periodsym){
-                //printOut(fp);
-                //printf("\nError: Semicolon expected");
+                printOut(fp);
+                printf("\nError: Semicolon expected");
+                flag = -1;
                 errorRecovery(tokenArray);
             }
         }while (tokenArray[idx].token == semicolonsym);
@@ -801,6 +1059,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != endsym){
             printOut(fp);
             printf("\nError: Begin must be followed by end");
+            flag = -1;
             exit(1);
         }
         
@@ -823,6 +1082,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != thensym){
             printOut(fp);
             printf("\nError: If must be followed by then");
+            flag = -1;
             exit(1);
         }
 
@@ -846,6 +1106,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != dosym){
             printOut(fp);
             printf("\nError: While must be followed by do");
+            flag = -1;
             exit(1);
         }
 
@@ -861,7 +1122,7 @@ void statement(token tokenArray[], FILE* fp){
         //emit JMP (M = loop_idx * 3), OPR = 7
         emit(7,0,loop_idx * 3);
         //update m for JPC
-        assemblyCode[jpc_idx].m = codeIndex * 3;
+        assemblyCode[jpc_idx].m = codeIndex * 3 ;
         return;
     }
     else if(tokenArray[idx].token == readsym){
@@ -870,6 +1131,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != identsym){
             printOut(fp);
             printf("\nError: Read keywords must be followed by identifier");
+            flag = -1;
             exit(1);
         }
 
@@ -886,12 +1148,14 @@ void statement(token tokenArray[], FILE* fp){
         if(symIdx == 0){
             printOut(fp);
             printf("\nError: Undeclared identifier");
+            flag = -1;
             exit(1);
         }
         //if it is not a var
         if(symbolTable[symIdx].kind != 2){
             printOut(fp);
             printf("\nError: Only variable values may be altered");
+            flag = -1;
             exit(1);
         }
 
@@ -936,6 +1200,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != thensym){
             printOut(fp);
             printf("\nError: XOR must be followed by then");
+            flag = -1;
             exit(1);
         }
 
@@ -947,6 +1212,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != semicolonsym){
             printOut(fp);
             //printf("\nError: Semicolon expected");
+            flag = -1;
             errorRecovery(tokenArray);
             idx++;
 
@@ -958,6 +1224,7 @@ void statement(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != elsesym){
             printOut(fp);
             printf("\nError: XOR must be follow then and follow else");
+            flag = -1;
             exit(1);
         }
 
@@ -971,9 +1238,9 @@ void statement(token tokenArray[], FILE* fp){
         idx++;
 
         //update m
-        assemblyCode[jpcIdx].m = codeIndex * 3;
+        assemblyCode[jpcIdx].m = codeIndex;
         statement(tokenArray, fp);
-        assemblyCode[jmpIdx].m = codeIndex * 3;
+        assemblyCode[jmpIdx].m = codeIndex;
 
     }
     else if(tokenArray[idx].token == callsym){
@@ -983,7 +1250,9 @@ void statement(token tokenArray[], FILE* fp){
         idx++;
 
         if(tokenArray[idx].token != identsym){
+            printOut(fp);
             printf("\nError: missing identifier\n");
+            flag = -1;
             exit(1);
         }
         int i;
@@ -994,18 +1263,24 @@ void statement(token tokenArray[], FILE* fp){
             }
         }
         if(symIdx == -1){
+            printOut(fp);
             printf("\nError: undeclared identifier\n");
+            flag = -1;
             exit(1); 
         }
         if(symbolTable[symIdx].kind != 3){
+            printOut(fp);
             printf("\nError: call must be followed by a prodecure identifier\n");
+            flag = -1;
             exit(1);
         }
-        emit(5, lexLevel - symbolTable[symIdx].level, symbolTable[symIdx].addr);
+        emit(5,0, symbolTable[symIdx].addr);
+        
         // get next token
         idx++;
     }
 }
+
 
 // condition procedure
 void condition(token tokenArray[], FILE *fp){
@@ -1076,6 +1351,7 @@ void condition(token tokenArray[], FILE *fp){
     }
 }
 
+
 void expression(token tokenArray[], FILE* fp){
     term(tokenArray, fp);
     while(tokenArray[idx].token == plussym || tokenArray[idx].token == minussym){
@@ -1097,6 +1373,7 @@ void expression(token tokenArray[], FILE* fp){
     }
 }
 
+
 void term(token tokenArray[], FILE* fp){
     factor(tokenArray, fp);
     while(tokenArray[idx].token == multsym || tokenArray[idx].token == slashsym){
@@ -1105,14 +1382,14 @@ void term(token tokenArray[], FILE* fp){
             idx++;
 
             factor(tokenArray, fp);
-            emit(2,lexLevel,3);                //emit MUL, OP = 2, MUL = 3
+            emit(2,0,3);                //emit MUL, OP = 2, MUL = 3
         }
         else{
             //get next token
             idx++;
             
             factor(tokenArray, fp);
-            emit(2,lexLevel,4);                //emit DIV, OP = 2, DIV = 4
+            emit(2,0,4);                //emit DIV, OP = 2, DIV = 4
         }
         
     }
@@ -1124,14 +1401,13 @@ void factor(token tokenArray[], FILE* fp){
     if(tokenArray[idx].token == identsym){
         int symIdx = 0;
         //check for undeclared
-        for(int i = tableIndex - 1; i > 0 ; i--){
-            if(strcmp(tokenArray[idx].type, symbolTable[i].name) == 0){
-                symIdx = i;
-            }
-        }
+        symIdx = symboltablecheck(tokenArray[idx].type);
+
+
         if(symIdx == 0){
             printOut(fp);
             printf("\nError: Undeclared identifier");
+            flag = -1;
             exit(1);
         }
         //var or const
@@ -1158,6 +1434,7 @@ void factor(token tokenArray[], FILE* fp){
         if(tokenArray[idx].token != rparentsym){
             printOut(fp);
             printf("\nError: Right parenthesis must follow left parenthesis");
+            flag = -1;
             exit(1);
         }
         //get the next token
@@ -1165,10 +1442,12 @@ void factor(token tokenArray[], FILE* fp){
     }
     else{
        printOut(fp);
-       printf("\nError: Arithmetic equations must contain operands, parentheses, numbers, or symbols"); 
+       printf("\nError: Arithmetic equations must contain operands, parentheses, numbers, or symbols");
+       flag = -1;
        exit(1);
     }
 }
+
 
 void errorRecovery(token tokenArray[]){
     while(tokenArray[idx].token != semicolonsym && idx <= tokenIndex){
@@ -1180,6 +1459,7 @@ void errorRecovery(token tokenArray[]){
 void emit(int op, int l, int m){
     if(codeIndex > CODE_SIZE){
         printf("\nError: Code index exceeds code max size");
+        flag = -1;
         exit(1);
     }
     else{
@@ -1276,6 +1556,57 @@ void printOut(FILE* fp){
 
         lineTracker++;
     }
+}
+
+
+void markTable(int current_LexLevel) {
+    for (int i = tableIndex - 1; i >= 0; i--) {
+        
+        //break the loop once we get to any levels below us
+        if(symbolTable[i].level < current_LexLevel)
+            break;
+
+        if(symbolTable[i].level == current_LexLevel)
+            symbolTable[i].mark = 1;
+
+    }
+}
+
+void printTable(symbol table[], int tableSize){
+
+    printf("\nSymbol Table:\n\n");
+    // fprintf(out, "\nSymbol Table:\n\n");
+    printf("table size %d\n", tableSize);
+    printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
+    printf("---------------------------------------------------\n");
+    // fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
+    // fprintf(out, "---------------------------------------------------\n");
+
+    for (int i = 0; (i < tableSize); i++)
+    {
+        printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+        // fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+    }
+    
+}
+
+//checks if a symbol with targetName exists in general
+//looks for local variables that are in scope and if not found continues to look globally
+//returns index if found, returns 0 if not
+int symboltablecheck(char *targetName){
+
+    
+    //moves backward thru symbol table
+    for (int index = tableIndex- 1; index > 0; index--)
+    {
+        // printf("\tI: %d\n", index);
+        if(strcmp(symbolTable[index].name, targetName) == 0 && symbolTable[index].mark == 0){
+            return index;
+        }
+
+    }
+
+    return 0;
 }
 
 
