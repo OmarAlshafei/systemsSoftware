@@ -14,7 +14,7 @@
 #define NUM_MAX 5
 #define MAX_SYMBOL_TABLE_SIZE 500
 #define CODE_SIZE 1000     
-#define ARRAY_SIZE 500 //stack maximum size
+#define ARRAY_SIZE 500
 
 // token values
 typedef enum {
